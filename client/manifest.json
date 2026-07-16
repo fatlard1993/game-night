@@ -1,0 +1,10 @@
+{
+	"name": "game-night",
+	"short_name": "game-night",
+	"lang": "en-US",
+	"orientation": "any",
+	"display": "standalone",
+	"theme_color": "#7a34b2",
+	"background_color": "#1b1b1b",
+	"start_url": "."
+}
