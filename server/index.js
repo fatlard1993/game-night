@@ -3,7 +3,7 @@
 import os from 'os';
 import path from 'path';
 
-import Argi from 'argi';
+import Argi from 'argi-cli';
 
 import database from './database';
 import server, { spawnBuild } from './server';
