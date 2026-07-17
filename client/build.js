@@ -10,6 +10,9 @@ const build = async () => {
 		// Root-absolute asset URLs so deep history routes (/games/:id) still resolve chunks
 		publicPath: '/',
 		define: {
+			// Inlined at build time; without an explicit value a plain `bun run build` (e.g. the
+			// prepare hook on a deploy box) bakes a development bundle, hotReload included
+			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
 			'process.env.AUTOPREFIXER_GRID': 'undefined',
 			'process.cwd': 'String',
 		},
