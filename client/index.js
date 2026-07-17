@@ -1,3 +1,5 @@
+import './polyfills';
+
 import { Page } from '@vanilla-bean/components';
 
 import context from './context';
