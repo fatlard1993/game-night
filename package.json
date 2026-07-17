@@ -37,7 +37,7 @@
 	"dependencies": {
 		"@leeoniya/ufuzzy": "^1.0.19",
 		"@vanilla-bean/components": "^2.0.1",
-		"@vanilla-bean/hypertether": "^1.0.1",
+		"@vanilla-bean/hypertether": "^1.0.2",
 		"argi-cli": "^1.0.0",
 		"lowdb": "^7.0.1",
 		"marked": "^18.0.6",
