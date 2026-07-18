@@ -1,8 +1,8 @@
 import { Dialog, Component, conditionalList, styled } from '@vanilla-bean/components';
 
-import { createGame, updateGame, uploadGameFile, deleteGameFile } from '../../api';
+import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../router';
-import { validateForm, parseLinks, parseRelated, asNumber } from '../util';
+import { validateForm, parseLinks, otherGameNames, asNumber } from '../util';
 
 import confirmDeleteGame from '../confirmDeleteGame';
 import GameForm from './GameForm';
@@ -48,12 +48,28 @@ export default class GameDialog extends Dialog {
 			appendTo: this._body,
 			data: this.options.game,
 		});
+
+		this._loadGameNames();
+	}
+
+	// Feeds the related-games picker's autocomplete/verification list; the dialog can open
+	// before this lands, and can close before it resolves.
+	async _loadGameNames() {
+		this._gamesRequest = await getGames({
+			onSuccess: response => {
+				if (!this.elem?.isConnected) return;
+
+				this.form.setGameNames(otherGameNames(response.body, this.options.game?.id));
+			},
+		});
+
+		this.addCleanup('gamesRequest', () => this._gamesRequest?.unsubscribe?.());
 	}
 
 	// hypertether doesn't throw on HTTP errors; every mutation gets its ok checked and a failure
 	// keeps the dialog open with the reason instead of closing as if it worked
 	async save() {
-		const { links, related, playersMin, playersMax, playTimeMin, playTimeMax, ...rest } = this.form.options.data;
+		const { links, playersMin, playersMax, playTimeMin, playTimeMax, ...rest } = this.form.options.data;
 
 		const body = {
 			...rest,
@@ -63,7 +79,7 @@ export default class GameDialog extends Dialog {
 			playTimeMin: asNumber(playTimeMin) ?? '',
 			playTimeMax: asNumber(playTimeMax) ?? '',
 			links: parseLinks(links),
-			related: parseRelated(related),
+			related: this.form.getRelated(),
 			tags: this.form.getTags(),
 		};
 
@@ -86,7 +102,8 @@ export default class GameDialog extends Dialog {
 		for (const file of this.form.getPendingFiles()) {
 			const uploaded = await uploadGameFile(id, file);
 
-			if (!uploaded.response?.ok) return this._showError(`"${file.name}" upload failed (the game itself saved)`, uploaded);
+			if (!uploaded.response?.ok)
+				return this._showError(`"${file.name}" upload failed (the game itself saved)`, uploaded);
 
 			this.form.markUploaded(file);
 		}

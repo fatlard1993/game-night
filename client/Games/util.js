@@ -62,14 +62,14 @@ export const serializeLinks = links =>
 		.map(({ label, url }) => (label && label !== url ? `${label} | ${url}` : url))
 		.join('\n');
 
-// Related games are stored as names (stable across installs, seedable) and resolved at render
-export const parseRelated = text =>
-	(text || '')
-		.split('\n')
-		.map(line => line.trim())
-		.filter(Boolean);
-
-export const serializeRelated = related => (Array.isArray(related) ? related : []).join('\n');
+// Every other game's name, alphabetized: the fixed vocabulary the related-games picker
+// autocompletes against and validates entries against, so a typo can't be saved as a link
+// to a game that doesn't exist.
+export const otherGameNames = (games, excludeId) =>
+	Object.values(games || {})
+		.filter(game => game.id !== excludeId)
+		.map(game => game.name)
+		.sort((a, b) => a.localeCompare(b));
 
 /**
  * Manual `related` names first, then auto-suggestions by weighted tag overlap.

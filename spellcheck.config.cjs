@@ -16,6 +16,7 @@ module.exports = {
 		'cmd',
 		'coverless',
 		'darwin',
+		'datalist',
 		'dotfolder',
 		'downscaled',
 		'farkle',

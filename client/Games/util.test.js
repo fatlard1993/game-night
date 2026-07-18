@@ -9,8 +9,7 @@ import {
 	fixLink,
 	parseLinks,
 	serializeLinks,
-	parseRelated,
-	serializeRelated,
+	otherGameNames,
 	playersLabel,
 	playTimeLabel,
 	relatedGames,
@@ -64,10 +63,19 @@ describe('links', () => {
 	});
 });
 
-describe('related', () => {
-	test('parse/serialize round-trips names', () => {
-		expect(parseRelated(' Hearts \n\nSpades\n')).toEqual(['Hearts', 'Spades']);
-		expect(serializeRelated(['Hearts', 'Spades'])).toBe('Hearts\nSpades');
+describe('otherGameNames', () => {
+	const games = {
+		a: { id: 'a', name: 'Hearts' },
+		b: { id: 'b', name: 'Spades' },
+		c: { id: 'c', name: 'Euchre' },
+	};
+
+	test('alphabetizes every other game, excluding the given id', () => {
+		expect(otherGameNames(games, 'b')).toEqual(['Euchre', 'Hearts']);
+	});
+
+	test('tolerates a missing/undefined library', () => {
+		expect(otherGameNames(undefined, 'a')).toEqual([]);
 	});
 });
 

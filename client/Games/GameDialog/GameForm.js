@@ -1,7 +1,9 @@
 import { Form, Select, Input, Label, Button, Elem, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../../api';
-import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks, serializeRelated } from '../util';
+import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../util';
+
+import RelatedGamesInput from './RelatedGamesInput';
 
 const FileRow = styled(
 	Elem,
@@ -29,6 +31,7 @@ export default class GameForm extends Form {
 	static schema = {
 		gameId: {},
 		existingTags: {},
+		existingRelated: {},
 		existingFiles: {},
 	};
 
@@ -36,7 +39,7 @@ export default class GameForm extends Form {
 		// description and rules are edited on the game's page (markdown editor), not here,
 		// excluding them keeps a stale dialog from clobbering page-side edits
 		// eslint-disable-next-line no-unused-vars
-		const { tags, files, id, description, rules, ...gameData } = options.data || {};
+		const { tags, related, files, id, description, rules, ...gameData } = options.data || {};
 
 		super({
 			...options,
@@ -50,10 +53,10 @@ export default class GameForm extends Form {
 				playTimeMax: '',
 				...gameData,
 				links: serializeLinks(options.data?.links),
-				related: serializeRelated(options.data?.related),
 			},
 			gameId: id,
 			existingTags: Array.isArray(tags) ? tags : [],
+			existingRelated: Array.isArray(related) ? related : [],
 			existingFiles: files || {},
 		});
 	}
@@ -98,12 +101,6 @@ export default class GameForm extends Form {
 					tag: 'textarea',
 					placeholder: 'One per line: https://... or Label | https://...',
 				},
-				{
-					key: 'related',
-					label: 'Related Games',
-					tag: 'textarea',
-					placeholder: 'One game name per line; pins them atop the auto-suggested related games',
-				},
 			],
 		});
 
@@ -113,11 +110,25 @@ export default class GameForm extends Form {
 
 		this.append(new Label({ label: 'Tags' }, this.tagList));
 
+		this.relatedList = new RelatedGamesInput({ tags: this.options.existingRelated });
+
+		this.append(new Label({ label: 'Related Games' }, this.relatedList));
+
 		this._buildFilesSection();
+	}
+
+	// Fills in once the dialog's game-list fetch resolves; a name typed before then just won't
+	// autocomplete/validate yet.
+	setGameNames(gameNames) {
+		this.relatedList.setOptions({ gameNames });
 	}
 
 	getTags() {
 		return Array.from(this.tagList.elem.querySelectorAll('li[data-value]')).map(el => el.dataset.value);
+	}
+
+	getRelated() {
+		return Array.from(this.relatedList.elem.querySelectorAll('li[data-value]')).map(el => el.dataset.value);
 	}
 
 	getPendingFiles() {
