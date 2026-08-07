@@ -1,7 +1,7 @@
 import { View, Elem, Button, Link, TagList, styled, Component } from '@vanilla-bean/components';
 
 import { getGame, getGames, updateGame, gameFileUrl, requestError } from '../api';
-import { navigate } from '../router';
+import { navigate } from '../navigate';
 import context from '../context';
 import { Content } from '../Layout';
 import Markdown from '../Markdown';

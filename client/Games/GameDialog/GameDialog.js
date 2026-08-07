@@ -1,7 +1,7 @@
 import { Dialog, Component, conditionalList, styled } from '@vanilla-bean/components';
 
 import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
-import { navigate } from '../../router';
+import { navigate } from '../../navigate';
 import { validateForm, parseLinks, otherGameNames, asNumber } from '../gameModel';
 
 import confirmDeleteGame from '../confirmDeleteGame';

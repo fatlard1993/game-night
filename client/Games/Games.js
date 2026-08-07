@@ -2,7 +2,7 @@ import uFuzzy from '@leeoniya/ufuzzy';
 import { View, Icon, Button, styled, Component } from '@vanilla-bean/components';
 
 import { getGames, requestError } from '../api';
-import { navigate } from '../router';
+import { navigate } from '../navigate';
 import context from '../context';
 
 import { Content } from '../Layout';
