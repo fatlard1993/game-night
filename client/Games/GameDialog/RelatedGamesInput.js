@@ -1,6 +1,6 @@
 import { TagList, styled } from '@vanilla-bean/components';
 
-const StyledComponent = styled(
+const StyledTagList = styled(
 	TagList,
 	({ colors }) => `
 		input.invalid {
@@ -13,7 +13,7 @@ const StyledComponent = styled(
 // only lands as a tag once it case-insensitively matches one, so a typo can't turn into a broken
 // related-game link. The datalist gives autocomplete; the input flashes red and keeps the typed
 // text on a miss instead of silently dropping it.
-export default class RelatedGamesInput extends StyledComponent {
+export default class RelatedGamesInput extends StyledTagList {
 	static schema = {
 		gameNames: {
 			get default() {

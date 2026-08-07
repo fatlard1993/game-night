@@ -1,6 +1,6 @@
 import { Dialog, Form, Elem, Link } from '@vanilla-bean/components';
 
-import { getSteamSettings, importSteamLibrary } from '../api';
+import { getSteamSettings, importSteamLibrary, requestError } from '../api';
 
 export default class SteamImportDialog extends Dialog {
 	constructor(options = {}) {
@@ -69,6 +69,12 @@ export default class SteamImportDialog extends Dialog {
 	}
 
 	async runImport() {
+		// Both requests would compute their skip-list before either created anything, so a
+		// double-press imports the whole library twice
+		if (this._importing) return;
+
+		this._importing = true;
+
 		// The Form commits inputs to its data store on change (blur), flush the focused field first
 		document.activeElement?.blur();
 
@@ -79,8 +85,10 @@ export default class SteamImportDialog extends Dialog {
 
 		const result = await importSteamLibrary({ body: { apiKey, steamId, minHours } });
 
-		if (!result.response.ok) {
-			this.status.elem.textContent = `Import failed: ${result.body?.error || result.response.status}`;
+		this._importing = false;
+
+		if (result.status !== 'success') {
+			this.status.elem.textContent = `Import failed: ${requestError(result)}`;
 
 			return;
 		}

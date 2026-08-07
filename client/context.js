@@ -7,6 +7,9 @@ const context = new Oxject({
 	searchElem: null,
 	// Last library URL (with filter query) so a game page's back arrow returns to the filtered list
 	libraryUrl: '/games',
+	// Whether this browser holds an admin session. Everyone can read the library; the editing
+	// affordances are hidden without one, and the server refuses the writes regardless.
+	admin: false,
 });
 
 export default context;

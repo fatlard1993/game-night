@@ -1,14 +1,27 @@
 import { Button, Input, Select, debounce } from '@vanilla-bean/components';
 
+import { logOut } from '../api';
 import context from '../context';
 
 import { Toolbar } from '../Layout';
 import ContextMenu from './ContextMenu';
-import GameDialog from './GameDialog';
+import GameDialog from './GameDialog/GameDialog';
+import LoginDialog from './LoginDialog';
 import MultiselectFilter from './MultiselectFilter';
 import SearchChips from './SearchChips';
 import SteamImportDialog from './SteamImportDialog';
-import { COMPLEXITY_LEVELS, SETTINGS } from './util';
+import { COMPLEXITY_LEVELS, SETTINGS } from './gameModel';
+
+// Square icon-only buttons: the add and session controls at the end of the toolbar
+const iconButtonStyles = `
+	&:empty {
+		padding: 0;
+		margin: 6px;
+		font-size: 1.3em;
+		height: 2.4rem;
+		width: 2.4rem;
+	}
+`;
 
 const TIME_FILTERS = [
 	{ label: 'Any length', value: '' },
@@ -122,17 +135,9 @@ export default class GamesToolbar extends Toolbar {
 			if (context.searchElem === this.search.input.elem) context.searchElem = null;
 		});
 
-		new Button({
+		this.addButton = new Button({
 			appendTo: this.elem,
-			styles: () => `
-				&:empty {
-					padding: 0;
-					margin: 6px;
-					font-size: 1.3em;
-					height: 2.4rem;
-					width: 2.4rem;
-				}
-			`,
+			styles: () => iconButtonStyles,
 			icon: 'plus',
 			title: 'Add Game',
 			onPointerPress: event => {
@@ -148,7 +153,28 @@ export default class GamesToolbar extends Toolbar {
 			},
 		});
 
+		this.sessionButton = new Button({
+			appendTo: this.elem,
+			styles: () => iconButtonStyles,
+			onPointerPress: () => (context.admin ? logOut().then(() => (context.admin = false)) : new LoginDialog()),
+		});
+
 		this.addMenu = new ContextMenu({ appendTo: this, reticle: false });
+
+		this._showSession(context.admin);
+
+		const session = context.subscribe({ key: 'admin', callback: admin => this._showSession(admin) });
+
+		this.addCleanup('sessionSubscription', () => session.unsubscribe());
+	}
+
+	// The add button is meaningless without a session; the key/logout button is how one is
+	// started or ended, and it is the only editing affordance a guest ever sees
+	_showSession(admin) {
+		this.addButton.elem.style.display = admin ? '' : 'none';
+
+		this.sessionButton.options.icon = admin ? 'lock-open' : 'lock';
+		this.sessionButton.options.title = admin ? 'Log out of admin' : 'Admin login';
 	}
 
 	// Games passes the live vocabulary so the tag checklist reflects the current library

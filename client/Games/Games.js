@@ -1,24 +1,26 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { View, Icon, styled, Component } from '@vanilla-bean/components';
+import { View, Icon, Button, styled, Component } from '@vanilla-bean/components';
 
-import { getGames } from '../api';
+import { getGames, requestError } from '../api';
 import { navigate } from '../router';
 import context from '../context';
 
 import { Content } from '../Layout';
 import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
-import GameDialog from './GameDialog';
+import GameDialog from './GameDialog/GameDialog';
 import ContextMenu from './ContextMenu';
 import confirmDeleteGame from './confirmDeleteGame';
-import { gameHaystack, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './util';
+import { gameHaystack, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './gameModel';
 
 // Tolerant fuzzy: allows insertions, substitutions, transpositions, and deletions within matches
 const fuzzy = new uFuzzy({ intraMode: 1, intraIns: 5, intraSub: 1, intraTrn: 1, intraDel: 1 });
 
 const CardGrid = styled.Component`
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	/* Columns flex to fill the row: ~200px+ tracks on wide screens, two-up on
+	   phones (the 50% term undercuts 200px there, minus half the gap) */
+	grid-template-columns: repeat(auto-fill, minmax(min(200px, calc(50% - 6px)), 1fr));
 	gap: 12px;
 	padding: 0 12px 12px;
 `;
@@ -58,14 +60,14 @@ export default class Games extends View {
 	}
 
 	async load() {
-		this.games = await getGames({
-			onSuccess: response => {
-				this.games = response;
+		const receive = response => {
+			this.games = response;
 
-				// The initial response also lands here; loaded gates a redundant first paint
-				if (this.loaded) this.refreshContent();
-			},
-		});
+			// The initial response also lands here; loaded gates a redundant first paint
+			if (this.loaded) this.refreshContent();
+		};
+
+		this.games = await getGames({ onSuccess: receive, onError: receive });
 
 		this.addCleanup('gamesRequest', () => this.games?.unsubscribe?.());
 
@@ -73,8 +75,17 @@ export default class Games extends View {
 		this.refreshContent();
 	}
 
+	// The body is only a games map on success; a failed request leaves an Error (network) or the
+	// server's error text there, and reading either as data is what made a failed load render as
+	// an empty library
+	gamesById() {
+		return this.games?.status === 'success' && this.games.body ? this.games.body : {};
+	}
+
 	refreshContent() {
-		this.toolbar.setTagVocabulary(tagCounts(this.games.body || {}));
+		// A failed refetch keeps the tag vocabulary it last had rather than emptying the filter
+		if (this.games?.status !== 'error') this.toolbar.setTagVocabulary(tagCounts(this.gamesById()));
+
 		this.renderContent();
 	}
 
@@ -110,7 +121,7 @@ export default class Games extends View {
 	}
 
 	getFilteredGames() {
-		const games = Object.values(this.games.body || {});
+		const games = Object.values(this.gamesById());
 
 		const filtered = games.filter(game =>
 			gameMatchesFilters(game, {
@@ -151,10 +162,12 @@ export default class Games extends View {
 	}
 
 	renderContent() {
-		const games = this.getFilteredGames();
-		const hasAnyGames = Object.keys(this.games.body || {}).length > 0;
-
 		this.content.empty();
+
+		if (this.games?.status === 'error') return this.renderError();
+
+		const games = this.getFilteredGames();
+		const hasAnyGames = Object.keys(this.gamesById()).length > 0;
 
 		if (games.length === 0) {
 			new EmptyMessage({
@@ -184,12 +197,34 @@ export default class Games extends View {
 		});
 	}
 
+	// Distinct from the empty-library message on purpose: "no games yet" and "the library did not
+	// load" look identical to someone holding a phone, and only one of them is worth a retry
+	renderError() {
+		new EmptyMessage({
+			appendTo: this.content,
+			append: [
+				new Component({ textContent: `Could not load the library: ${requestError(this.games)}` }),
+				new Button({
+					textContent: 'Try again',
+					style: { margin: '12px auto 0' },
+					onPointerPress: () => {
+						this.renderLoader();
+						this.games.refetch?.();
+					},
+				}),
+			],
+		});
+	}
+
 	showContextMenu(event) {
 		event.preventDefault();
 		event.stopPropagation();
 
 		const gameId = event.target.closest?.('[data-game-id]')?.dataset.gameId;
-		const game = this.games.body?.[gameId];
+		const game = this.gamesById()[gameId];
+
+		// Every item here writes; without a session the menu would offer nothing the server accepts
+		if (!context.admin) return;
 
 		this.contextMenu.options.items = [
 			...(game

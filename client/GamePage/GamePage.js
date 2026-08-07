@@ -1,13 +1,14 @@
 import { View, Elem, Button, Link, TagList, styled, Component } from '@vanilla-bean/components';
 
-import { getGame, getGames, updateGame, gameFileUrl } from '../api';
+import { getGame, getGames, updateGame, gameFileUrl, requestError } from '../api';
 import { navigate } from '../router';
 import context from '../context';
 import { Content } from '../Layout';
 import Markdown from '../Markdown';
-import GameDialog from '../Games/GameDialog';
+import { safeUrl } from '../safeUrl';
+import GameDialog from '../Games/GameDialog/GameDialog';
 import confirmDeleteGame from '../Games/confirmDeleteGame';
-import { gameMetaLabel, gameImageIds, gameAttachmentIds, relatedGames } from '../Games/util';
+import { gameMetaLabel, gameImageIds, gameAttachmentIds, relatedGames } from '../Games/gameModel';
 import MarkdownEditor from './MarkdownEditor';
 
 // click isn't in the default event set; the back link wants full click semantics
@@ -149,24 +150,31 @@ export default class GamePage extends View {
 	}
 
 	async load() {
+		// A re-render rebuilds the editors from the server's copy, so a background refetch
+		// landing mid-sentence would take the sentence with it. Whatever arrives is kept; the
+		// editors pick it up when they close.
+		const repaint = () => {
+			if (this.loaded && !this.editing) this.renderContent();
+		};
+
+		const receiveGame = response => {
+			this.game = response;
+
+			// The initial response also lands here; loaded gates a redundant first paint
+			repaint();
+		};
+
+		const receiveGames = response => {
+			this.games = response;
+
+			repaint();
+		};
+
 		// The full library rides along for the related-games section; both fetches in parallel,
 		// first paint waits on the slower of the two instead of the sum
 		[this.game, this.games] = await Promise.all([
-			getGame(this.options.id, {
-				onSuccess: response => {
-					this.game = response;
-
-					// The initial response also lands here; loaded gates a redundant first paint
-					if (this.loaded) this.renderContent();
-				},
-			}),
-			getGames({
-				onSuccess: response => {
-					this.games = response;
-
-					if (this.loaded) this.renderContent();
-				},
-			}),
+			getGame(this.options.id, { onSuccess: receiveGame, onError: receiveGame }),
+			getGames({ onSuccess: receiveGames, onError: receiveGames }),
 		]);
 
 		this.addCleanup('gameRequests', () => {
@@ -175,6 +183,11 @@ export default class GamePage extends View {
 		});
 
 		this.loaded = true;
+
+		const session = context.subscribe({ key: 'admin', callback: () => this.renderContent() });
+
+		this.addCleanup('sessionSubscription', () => session.unsubscribe());
+
 		this.renderContent();
 	}
 
@@ -197,13 +210,30 @@ export default class GamePage extends View {
 	}
 
 	renderContent() {
-		const game = this.game.body;
+		// A failed request leaves an Error in body, which is truthy; rendering it as a game gave
+		// a page with an undefined name and no content instead of saying what went wrong
+		const failed = this.game?.status === 'error';
+		const game = failed ? null : this.game.body;
 
 		this.header.empty();
 		this.content.empty();
 
 		if (!game) {
-			new Elem({ appendTo: this.content, style: { margin: '24px' }, textContent: 'Game not found' });
+			new Elem({
+				appendTo: this.content,
+				style: { margin: '24px' },
+				textContent: failed ? `Could not load this game: ${requestError(this.game)}` : 'Game not found',
+			});
+
+			if (failed) {
+				new Button({
+					appendTo: this.content,
+					textContent: 'Try again',
+					style: { margin: '0 24px 12px' },
+					onPointerPress: () => this.game.refetch?.(),
+				});
+			}
+
 			this._backLink({
 				appendTo: this.content,
 				textContent: 'Back to library',
@@ -226,7 +256,9 @@ export default class GamePage extends View {
 
 		new Title({ appendTo: this.header, textContent: game.name, title: game.name });
 
-		if (!this.editing) {
+		// Editing writes, and every write needs an admin session; without one the page is
+		// read-only rather than offering buttons the server would refuse
+		if (!this.editing && context.admin) {
 			new Button({
 				appendTo: this.header,
 				icon: 'pen',
@@ -294,7 +326,9 @@ export default class GamePage extends View {
 						({ label, url }) =>
 							new Elem({
 								style: { margin: '0 0 3px' },
-								append: new Link({ href: url, attributes: { target: '_blank' }, textContent: label || url }),
+								// Link urls are stored as typed; the href is an anchor property assignment,
+								// so an executable scheme would run on click without this
+								append: new Link({ href: safeUrl(url), attributes: { target: '_blank' }, textContent: label || url }),
 							}),
 					),
 				],
@@ -312,7 +346,9 @@ export default class GamePage extends View {
 			new Elem({
 				appendTo: this.body,
 				style: { margin: '12px 0', fontStyle: 'italic' },
-				textContent: 'No description or rules yet .. Use the Edit button to write them',
+				textContent: context.admin
+					? 'No description or rules yet .. Use the Edit button to write them'
+					: 'No description or rules yet',
 			});
 		}
 
@@ -371,7 +407,18 @@ export default class GamePage extends View {
 		});
 	}
 
+	// True when the editors hold something the server doesn't have yet
+	_editsPending() {
+		if (!this.editing || !this.descriptionEditor) return false;
+
+		const { description = '', rules = '' } = this._editorBaseline || {};
+
+		return this.descriptionEditor.value !== description || this.rulesEditor.value !== rules;
+	}
+
 	_renderEditor(game) {
+		this._editorBaseline = { description: game.description || '', rules: game.rules || '' };
+
 		this.descriptionEditor = new MarkdownEditor({
 			appendTo: this.body,
 			label: 'Description',
@@ -385,6 +432,19 @@ export default class GamePage extends View {
 			value: game.rules,
 			placeholder: 'How to play: setup, turns, scoring, winning. Markdown supported...',
 		});
+
+		// Covers the tab close, the back button, and the dev hot-reload, none of which route
+		// through Cancel
+		const warn = event => {
+			if (!this._editsPending()) return;
+
+			event.preventDefault();
+			event.returnValue = '';
+		};
+
+		window.addEventListener('beforeunload', warn);
+		// replaceCleanup: renderContent runs again on every background refetch while editing
+		this.replaceCleanup('unsavedGuard', () => window.removeEventListener('beforeunload', warn));
 
 		new EditBar({
 			appendTo: this.body,
@@ -416,6 +476,10 @@ export default class GamePage extends View {
 				new Button({
 					textContent: 'Cancel',
 					onPointerPress: () => {
+						// Rules get written here in long sittings; discarding them on a single stray tap,
+						// with no undo and no draft anywhere, is the most expensive slip on the page
+						if (this._editsPending() && !window.confirm('Discard your unsaved changes?')) return;
+
 						this.editing = false;
 						this.renderContent();
 					},

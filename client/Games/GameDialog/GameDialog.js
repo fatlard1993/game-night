@@ -2,7 +2,7 @@ import { Dialog, Component, conditionalList, styled } from '@vanilla-bean/compon
 
 import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../router';
-import { validateForm, parseLinks, otherGameNames, asNumber } from '../util';
+import { validateForm, parseLinks, otherGameNames, asNumber } from '../gameModel';
 
 import confirmDeleteGame from '../confirmDeleteGame';
 import GameForm from './GameForm';

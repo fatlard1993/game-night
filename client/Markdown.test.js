@@ -29,6 +29,22 @@ describe('renderMarkdown', () => {
 		expect(renderMarkdown('[ok](https://example.com)')).toContain('href="https://example.com"');
 	});
 
+	// The href lands in innerHTML, so the browser decodes entities in it after marked is done;
+	// checking the raw text let these through while the click still executed
+	test('executable protocols hidden behind entities are dropped', () => {
+		expect(renderMarkdown('[link](&#106;avascript:alert(1))')).not.toContain('avascript');
+		expect(renderMarkdown('[link](&#x6a;avascript:alert(1))')).not.toContain('avascript');
+		expect(renderMarkdown('[link](javascript&colon;alert(1))')).not.toContain('alert');
+	});
+
+	test('reference links go through the same check', () => {
+		expect(renderMarkdown('[click][ref]\n\n[ref]: &#106;avascript:alert(1)')).not.toContain('avascript');
+	});
+
+	test('image sources are checked too', () => {
+		expect(renderMarkdown('![alt](&#106;avascript:alert(1))')).not.toContain('avascript');
+	});
+
 	test('tolerates empty input', () => {
 		expect(renderMarkdown('')).toBe('');
 		expect(renderMarkdown()).toBe('');

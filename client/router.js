@@ -1,7 +1,7 @@
 import { Router } from '@vanilla-bean/components';
 
-import Games from './Games';
-import GamePage from './GamePage';
+import Games from './Games/Games';
+import GamePage from './GamePage/GamePage';
 
 // The base Router skips re-rendering when the matched route pattern is unchanged, but
 // /games/:id -> /games/:id with a different id is the same pattern and needs a fresh view.

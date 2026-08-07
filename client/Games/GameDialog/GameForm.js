@@ -1,7 +1,7 @@
 import { Form, Select, Input, Label, Button, Elem, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../../api';
-import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../util';
+import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../gameModel';
 
 import RelatedGamesInput from './RelatedGamesInput';
 

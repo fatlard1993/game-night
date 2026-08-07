@@ -14,7 +14,7 @@ import {
 	playTimeLabel,
 	relatedGames,
 	tagCounts,
-} from './util';
+} from './gameModel';
 
 describe('asNumber', () => {
 	test('parses numeric strings', () => {
@@ -112,8 +112,9 @@ describe('gameMatchesFilters', () => {
 		expect(gameMatchesFilters(game, { players: 7 })).toBe(false);
 	});
 
-	test('a players filter excludes games with no player data', () => {
-		expect(gameMatchesFilters({ ...game, playersMin: '', playersMax: '' }, { players: 4 })).toBe(false);
+	test('one open end of a player range still rules a game out', () => {
+		expect(gameMatchesFilters({ ...game, playersMax: '' }, { players: 1 })).toBe(false);
+		expect(gameMatchesFilters({ ...game, playersMin: '' }, { players: 9 })).toBe(false);
 	});
 
 	test('maxTime uses the shortest advertised time', () => {
@@ -121,10 +122,26 @@ describe('gameMatchesFilters', () => {
 		expect(gameMatchesFilters(game, { maxTime: 15 })).toBe(false);
 	});
 
-	test('maxComplexity is an at-or-below cutoff and unrated games are excluded', () => {
+	test('maxComplexity is an at-or-below cutoff', () => {
 		expect(gameMatchesFilters(game, { maxComplexity: 'Medium' })).toBe(true);
 		expect(gameMatchesFilters(game, { maxComplexity: 'Light' })).toBe(false);
-		expect(gameMatchesFilters({ ...game, complexity: '' }, { maxComplexity: 'Heavy' })).toBe(false);
+	});
+
+	// Homemade entries and Steam imports mid-enrichment have no player count, time, or
+	// complexity; excluding them made whole shelves disappear with nothing explaining why
+	test('games with no data on a filtered axis are kept, not hidden', () => {
+		const bare = { ...game, playersMin: '', playersMax: '', playTimeMin: '', playTimeMax: '', complexity: '' };
+
+		expect(gameMatchesFilters(bare, { players: 4 })).toBe(true);
+		expect(gameMatchesFilters(bare, { maxTime: 15 })).toBe(true);
+		expect(gameMatchesFilters(bare, { maxComplexity: 'Light' })).toBe(true);
+	});
+
+	test('setting and tags still exclude on their own evidence', () => {
+		const bare = { ...game, playersMin: '', playersMax: '' };
+
+		expect(gameMatchesFilters(bare, { players: 4, setting: 'Couch' })).toBe(false);
+		expect(gameMatchesFilters(bare, { players: 4, tags: ['dice-game'] })).toBe(false);
 	});
 
 	test('tags are OR semantics', () => {

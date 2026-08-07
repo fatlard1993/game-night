@@ -1,7 +1,7 @@
 import { Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../api';
-import { gameImageIds, gameMetaLabel } from './util';
+import { gameImageIds, gameMetaLabel } from './gameModel';
 
 // click isn't in the default event set; the anchor-like tag press wants full
 // click semantics (fires after pointerup, cancels on drag-away)
@@ -14,7 +14,6 @@ const Card = styled(
 	({ colors }) => `
 		display: flex;
 		flex-direction: column;
-		width: 216px;
 		border: 1px solid ${colors.alpha(colors.gray, 0.5)};
 		border-radius: 6px;
 		overflow: hidden;
@@ -39,6 +38,13 @@ const Card = styled(
 			li {
 				cursor: pointer;
 
+				/* Long tags clamp to the card width on narrow columns; inline-block
+				   (over the Tag default inline-flex) lets text-overflow apply */
+				display: inline-block;
+				max-width: 100%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+
 				&:hover {
 					border-color: ${colors.light(colors.teal)};
 				}
@@ -53,7 +59,7 @@ const Cover = styled(
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		height: 120px;
+		aspect-ratio: 9 / 5;
 		overflow: hidden;
 		background-color: ${colors.alpha(colors.black, 0.4)};
 

@@ -3,9 +3,9 @@ import { Dialog } from '@vanilla-bean/components';
 import { deleteGame } from '../api';
 
 /**
- *
- * @param game
- * @param onDeleted
+ * Confirm, then delete the game and its files. The dialog stays open on failure.
+ * @param game the game to delete
+ * @param onDeleted called after a successful delete, e.g. to leave the game's page
  */
 export default function confirmDeleteGame(game, onDeleted) {
 	new Dialog({

@@ -1,6 +1,8 @@
 import { marked } from 'marked';
 import { Component, styled } from '@vanilla-bean/components';
 
+import { safeUrl } from './safeUrl';
+
 const escapeHtml = text =>
 	text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
@@ -8,7 +10,7 @@ const escapeHtml = text =>
 // single newlines visible instead of collapsing them into one paragraph.
 // The html renderer and walkTokens sanitize: descriptions arrive from third parties (Steam
 // store, pasted text) and land in innerHTML, so raw HTML renders as visible text instead of
-// executing, and executable link protocols are dropped. Markdown covers the rest.
+// executing, and every link href goes through the scheme allowlist. Markdown covers the rest.
 marked.use({
 	breaks: true,
 	gfm: true,
@@ -18,9 +20,7 @@ marked.use({
 		},
 	},
 	walkTokens: token => {
-		if ((token.type === 'link' || token.type === 'image') && /^\s*(javascript|vbscript|data):/i.test(token.href)) {
-			token.href = '#';
-		}
+		if (token.type === 'link' || token.type === 'image') token.href = safeUrl(token.href);
 	},
 });
 

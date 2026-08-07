@@ -74,9 +74,9 @@ export const otherGameNames = (games, excludeId) =>
 /**
  * Manual `related` names first, then auto-suggestions by weighted tag overlap.
  * Rare tags count more than generic ones (weight = 1/library-wide frequency).
- * @param game
- * @param allGames
- * @param limit
+ * @param game the game whose page is being rendered
+ * @param allGames the whole library, keyed by id
+ * @param limit how many to return, manual picks included
  */
 export const relatedGames = (game, allGames, limit = 6) => {
 	const others = Object.values(allGames).filter(other => other.id !== game.id);
@@ -168,7 +168,12 @@ export const tagCounts = games => {
 // Filters: players, the game's min/max range must include the requested count.
 // maxTime, the game's shortest advertised play time must fit in the window.
 // setting, exact match; empty means any. maxComplexity, at-or-below cutoff.
-// tags, exact-match OR: the game must carry at least one selected tag (medium is a tag now).
+// tags, exact-match OR: the game must carry at least one selected tag. The game's medium
+// (board, card, video) is expressed as tags rather than its own field.
+//
+// A filter only rules a game out on evidence. A game with no player count, no play time, or no
+// complexity set is kept, because homemade entries and Steam imports mid-enrichment have none of
+// it, and dropping them made whole shelves vanish with nothing on screen to explain why.
 export const gameMatchesFilters = (game, { players, maxTime, setting, maxComplexity, tags } = {}) => {
 	if (setting && game.setting !== setting) return false;
 	if (tags?.length > 0 && !tags.some(tag => (game.tags || []).includes(tag))) return false;
@@ -177,7 +182,7 @@ export const gameMatchesFilters = (game, { players, maxTime, setting, maxComplex
 		const gameLevel = COMPLEXITY_LEVELS.indexOf(game.complexity);
 		const maxLevel = COMPLEXITY_LEVELS.indexOf(maxComplexity);
 
-		if (gameLevel === -1 || gameLevel > maxLevel) return false;
+		if (gameLevel > maxLevel) return false;
 	}
 
 	if (players !== undefined) {
@@ -186,13 +191,12 @@ export const gameMatchesFilters = (game, { players, maxTime, setting, maxComplex
 
 		if (min !== undefined && players < min) return false;
 		if (max !== undefined && players > max) return false;
-		if (min === undefined && max === undefined) return false;
 	}
 
 	if (maxTime !== undefined) {
 		const time = asNumber(game.playTimeMin) ?? asNumber(game.playTimeMax);
 
-		if (time === undefined || time > maxTime) return false;
+		if (time !== undefined && time > maxTime) return false;
 	}
 
 	return true;

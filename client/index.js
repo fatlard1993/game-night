@@ -2,10 +2,15 @@ import './polyfills';
 
 import { Page } from '@vanilla-bean/components';
 
+import { getSession } from './api';
 import context from './context';
 import router from './router';
 
 import './hotReload';
+
+// Views read context.admin to decide whether to offer editing at all; seed it before first
+// paint so the buttons don't flash in and out. A failed check simply leaves it false.
+getSession({ onSuccess: ({ body }) => (context.admin = !!body?.admin) }).catch(() => {});
 
 document.addEventListener('keypress', event => {
 	if (!context.searchElem) {
