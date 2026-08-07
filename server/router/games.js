@@ -7,6 +7,9 @@ import requestMatch from '../utils/requestMatch';
 // Big enough for phone photos and rulebook pdfs, small enough to keep dataUri JSON bodies sane
 const MAX_UPLOAD_BYTES = 15_000_000;
 
+// A per-game ceiling as well as a per-file one; without it the disk is a loop of valid uploads away
+const MAX_FILES_PER_GAME = 40;
+
 const gamesRouter = async request => {
 	let match;
 
@@ -32,6 +35,9 @@ const gamesRouter = async request => {
 
 		if (original.length > MAX_UPLOAD_BYTES) return new Response('File too large', { status: 413 });
 
+		if (Object.keys(game.files || {}).length >= MAX_FILES_PER_GAME)
+			return new Response(`A game can hold ${MAX_FILES_PER_GAME} files`, { status: 413 });
+
 		// storeGameFile caps covers on the way in so the grid never paints multi-megabyte images
 		return Response.json(await storeGameFile(match.id, original, { name, contentType }));
 	}
@@ -46,8 +52,11 @@ const gamesRouter = async request => {
 
 		// The stored type is whatever the uploader's dataUri claimed; only render types a browser
 		// can't execute as a page. Anything else (e.g. text/html) downloads instead of running
-		// same-origin.
-		const inline = meta.type?.startsWith('image/') || ['application/pdf', 'text/plain'].includes(meta.type);
+		// same-origin. SVG is an image that carries script, so it downloads too: nosniff can't
+		// help when the declared type is itself the executable one.
+		const inline =
+			(meta.type?.startsWith('image/') && !meta.type.startsWith('image/svg')) ||
+			['application/pdf', 'text/plain'].includes(meta.type);
 
 		return new Response(buffer, {
 			headers: {

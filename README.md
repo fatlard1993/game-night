@@ -27,11 +27,23 @@ bun test
 
 Data lives in `~/.gameNight.json` (override with `--database`); pictures and attachments in a sibling `~/.gameNight-files/` folder. Default port is `8034` (override with `--port`).
 
+## Who can change what
+
+Anyone on the network can browse, search, and read. Adding, editing, and deleting need an admin password, entered once per device through the padlock in the toolbar.
+
+Set it with `--password` or `GAME_NIGHT_PASSWORD`. Leave it unset and the first run generates one and prints it to the console, once:
+
+```sh
+bun start --password 'something only you know'
+```
+
+Only the argon2 hash is stored. Changing the password logs every device out.
+
 Run it as a background service:
 
 ```sh
 bun run service:enable  # systemd user unit on linux, launchd agent on macos
-bun run service:reload  # after pulling changes + bun run build
+bun run deploy          # rebuild and restart the service after pulling changes
 ```
 
 ## Stack

@@ -20,7 +20,16 @@ const database = {
 
 		database.db = new Low(new JSONFile(resolvedPath), database.default);
 
-		await database.db.read();
+		try {
+			await database.db.read();
+		} catch (error) {
+			// A hand-edited or truncated file otherwise exits with a bare parse error, and on a
+			// service install that lands in the journal with nothing naming the file
+			throw new Error(
+				`Could not read the database at ${resolvedPath}: ${error.message}\n` +
+					'Fix the json, restore a backup, or point elsewhere with --database.',
+			);
+		}
 
 		database.db.data = { ...database.default, ...(database.db.data || {}) };
 

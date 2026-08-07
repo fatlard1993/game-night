@@ -1,6 +1,6 @@
-import database from '../database';
-import games from '../database/games';
-import { storeGameFile } from './gameFiles';
+import database from './database/database';
+import games from './database/games';
+import { storeGameFile } from './utils/gameFiles';
 
 const STEAM_API = 'https://api.steampowered.com';
 
@@ -30,10 +30,35 @@ const resolveSteamId = async (apiKey, input) => {
 	return result.steamid;
 };
 
+// One drain loop for the whole process: a second import arriving mid-trickle joins the queue
+// instead of doubling the request rate the store API is already unhappy about
+const pending = [];
+let draining = false;
+
+const queueEnrichment = games => {
+	pending.push(...games);
+
+	if (draining) return;
+
+	draining = true;
+
+	enrichSteamGames()
+		.catch(error => console.error('Steam enrichment error', error))
+		.finally(() => {
+			draining = false;
+		});
+};
+
 // Storefront metadata + cover art, trickled slowly, the unauthenticated store API
 // rate-limits hard (~200 requests per 5 minutes)
-const enrichSteamGames = async createdGames => {
-	for (const game of createdGames) {
+const enrichSteamGames = async () => {
+	let count = 0;
+
+	while (pending.length > 0) {
+		const game = pending.shift();
+
+		count++;
+
 		try {
 			const coverResponse = await fetch(`https://cdn.akamai.steamstatic.com/steam/apps/${game.steamAppId}/header.jpg`);
 
@@ -76,6 +101,11 @@ const enrichSteamGames = async createdGames => {
 
 					await games.update({ id: game.id, update });
 				}
+
+				// Marked only once the storefront actually answered, so a rate-limited or failed
+				// pass is picked up again on the next boot rather than left bare forever. A game
+				// the store has no data for is still marked; retrying that one never helps.
+				await games.update({ id: game.id, update: { steamEnriched: true } });
 			}
 		} catch (error) {
 			console.error(`Steam enrichment failed for ${game.name}:`, error.message);
@@ -84,7 +114,19 @@ const enrichSteamGames = async createdGames => {
 		await Bun.sleep(1600);
 	}
 
-	console.log(`Steam enrichment finished (${createdGames.length} games)`);
+	console.log(`Steam enrichment finished (${count} games)`);
+};
+
+// Games whose storefront pass never completed, oldest import first. An import interrupted by a
+// restart or a deploy leaves these behind; nothing else would ever come back for them.
+export const resumeSteamEnrichment = async () => {
+	const awaiting = Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
+
+	if (awaiting.length === 0) return;
+
+	console.log(`Resuming Steam enrichment for ${awaiting.length} game(s)`);
+
+	queueEnrichment(awaiting);
 };
 
 export const importSteamLibrary = async ({ apiKey, steamId, minHours = 0 }) => {
@@ -138,7 +180,7 @@ export const importSteamLibrary = async ({ apiKey, steamId, minHours = 0 }) => {
 	}
 
 	// Covers and store metadata land in the background, the library list is usable immediately
-	if (created.length > 0) enrichSteamGames(created).catch(error => console.error('Steam enrichment error', error));
+	if (created.length > 0) queueEnrichment(created);
 
 	return { total: result.game_count, eligible: eligible.length, imported: created.length, skipped };
 };

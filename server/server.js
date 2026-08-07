@@ -1,4 +1,4 @@
-import router from './router';
+import router from './router/router';
 
 const clients = {};
 
@@ -10,7 +10,9 @@ export const reloadClients = () => {
 	});
 };
 
-export const spawnBuild = async () => {
+// Long-lived: rebuilds on every file change until the process exits. Started once by init;
+// a second one would double every rebuild, so nothing else may call this.
+const spawnBuildWatcher = async () => {
 	const buildProcess = Bun.spawn(['bun', 'run', 'build:watch']);
 
 	for await (const chunk of buildProcess.stdout) {
@@ -21,6 +23,13 @@ export const spawnBuild = async () => {
 		// A chunk can carry several lines at once; match by line or the signal gets missed
 		if (text.split('\n').includes('build.success')) reloadClients();
 	}
+};
+
+// One-shot rebuild for the dev console's 'b' key, for when the watcher missed something
+export const runBuild = async () => {
+	const buildProcess = Bun.spawn(['bun', 'run', 'build'], { stdout: 'inherit', stderr: 'inherit' });
+
+	if ((await buildProcess.exited) === 0) reloadClients();
 };
 
 export default {
@@ -47,6 +56,7 @@ export default {
 		console.log(`Listening on ${server.hostname}:${server.port}`);
 
 		// The build watcher loop runs for the life of the process; don't hold init on it
-		if (process.env.NODE_ENV === 'development') spawnBuild().catch(error => console.error('Build Error', error));
+		if (process.env.NODE_ENV === 'development')
+			spawnBuildWatcher().catch(error => console.error('Build Error', error));
 	},
 };

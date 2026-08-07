@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-import database from '../database';
+import database from '../database/database';
 
 // Attachments live in a per-game folder: <filesDir>/<gameId>/<fileId>
 // nanoid can produce ids with characters that need path safety checks if this ever accepts

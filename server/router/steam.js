@@ -1,4 +1,4 @@
-import { importSteamLibrary, steamSettings, storedSteamCredentials } from '../utils/steam';
+import { importSteamLibrary, steamSettings, storedSteamCredentials } from '../steam';
 
 import requestMatch from '../utils/requestMatch';
 
