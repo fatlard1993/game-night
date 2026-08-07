@@ -6,53 +6,79 @@ const isPlainObject = value => !!value && typeof value === 'object' && !Array.is
 // given and only surfaced later, far from here, as a crash in code that assumed a string, so
 // every field is checked at the one door into the db. Numbers are accepted where text is
 // expected (a phone keyboard sends "7" for a name readily enough); containers never are.
+//
+// Each type also knows what its own unset value looks like, so a field left out of a create
+// lands as the right kind of empty rather than as '' waiting for someone downstream to notice.
+// `empty` is a factory: a shared [] would be handed to every game in the library.
 const types = {
-	string: value => {
-		if (typeof value === 'string') return value;
-		if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+	string: {
+		empty: () => '',
+		parse: value => {
+			if (typeof value === 'string') return value;
+			if (typeof value === 'number' && Number.isFinite(value)) return String(value);
 
-		throw new ValidationError('expected text');
+			throw new ValidationError('expected text');
+		},
 	},
 	// '' is how the db stores an unset number, both directions
-	number: value => {
-		if (value === '' || value === null) return '';
-		if (typeof value === 'number' && Number.isFinite(value)) return value;
-		if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
+	number: {
+		empty: () => '',
+		parse: value => {
+			if (value === '' || value === null) return '';
+			if (typeof value === 'number' && Number.isFinite(value)) return value;
+			if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
 
-		throw new ValidationError('expected a number');
+			throw new ValidationError('expected a number');
+		},
 	},
-	boolean: value => {
-		if (typeof value === 'boolean') return value;
+	boolean: {
+		empty: () => false,
+		parse: value => {
+			if (typeof value === 'boolean') return value;
 
-		throw new ValidationError('expected true or false');
+			throw new ValidationError('expected true or false');
+		},
 	},
-	stringArray: value => {
-		if (!Array.isArray(value)) throw new ValidationError('expected a list');
+	stringArray: {
+		empty: () => [],
+		parse: value => {
+			if (!Array.isArray(value)) throw new ValidationError('expected a list');
 
-		return value.map(entry => types.string(entry));
+			return value.map(entry => types.string.parse(entry));
+		},
 	},
-	linkArray: value => {
-		if (!Array.isArray(value)) throw new ValidationError('expected a list of links');
+	linkArray: {
+		empty: () => [],
+		parse: value => {
+			if (!Array.isArray(value)) throw new ValidationError('expected a list of links');
 
-		return value.map(entry => {
-			if (!isPlainObject(entry)) throw new ValidationError('expected a link object');
+			return value.map(entry => {
+				if (!isPlainObject(entry)) throw new ValidationError('expected a link object');
 
-			return { label: types.string(entry.label ?? ''), url: types.string(entry.url ?? '') };
-		});
+				return { label: types.string.parse(entry.label ?? ''), url: types.string.parse(entry.url ?? '') };
+			});
+		},
 	},
-	fileMap: value => {
-		if (!isPlainObject(value)) throw new ValidationError('expected a file map');
+	fileMap: {
+		empty: () => ({}),
+		parse: value => {
+			if (!isPlainObject(value)) throw new ValidationError('expected a file map');
 
-		return Object.fromEntries(
-			Object.entries(value).map(([fileId, meta]) => {
-				if (!isPlainObject(meta)) throw new ValidationError('expected file metadata');
+			return Object.fromEntries(
+				Object.entries(value).map(([fileId, meta]) => {
+					if (!isPlainObject(meta)) throw new ValidationError('expected file metadata');
 
-				return [
-					types.string(fileId),
-					{ name: types.string(meta.name ?? ''), type: types.string(meta.type ?? ''), size: types.number(meta.size) },
-				];
-			}),
-		);
+					return [
+						types.string.parse(fileId),
+						{
+							name: types.string.parse(meta.name ?? ''),
+							type: types.string.parse(meta.type ?? ''),
+							size: types.number.parse(meta.size),
+						},
+					];
+				}),
+			);
+		},
 	},
 };
 
@@ -79,12 +105,12 @@ export const validateFields = (spec, data, { partial = false } = {}) => {
 			if (required && !partial) throw new ValidationError(`${field} is required`);
 			if (partial) continue;
 
-			result[field] = '';
+			result[field] = types[type].empty();
 			continue;
 		}
 
 		try {
-			result[field] = types[type](value);
+			result[field] = types[type].parse(value);
 		} catch (error) {
 			throw new ValidationError(`${field}: ${error.message}`);
 		}

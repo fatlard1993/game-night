@@ -46,7 +46,7 @@ server.init({ port: options.port });
 
 // A Steam import trickles storefront data for minutes; if the process stopped partway through,
 // the rest of that library would have stayed bare forever without this
-resumeSteamEnrichment().catch(error => console.error('Steam enrichment resume failed', error));
+resumeSteamEnrichment();
 
 if (process.env.NODE_ENV === 'development') {
 	try {

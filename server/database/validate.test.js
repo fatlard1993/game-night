@@ -13,16 +13,26 @@ const spec = {
 };
 
 describe('validateFields', () => {
-	test('keeps known fields and defaults the rest', () => {
+	// Each type supplies its own unset value, so a container field arrives as a container
+	test('keeps known fields and defaults the rest to their own kind of empty', () => {
 		expect(validateFields(spec, { name: 'Uno', nope: 'ignored' })).toEqual({
 			name: 'Uno',
 			description: '',
 			playersMin: '',
-			tags: '',
-			links: '',
-			files: '',
-			steamEnriched: '',
+			tags: [],
+			links: [],
+			files: {},
+			steamEnriched: false,
 		});
+	});
+
+	test('the empty containers are fresh each time, not one shared instance', () => {
+		const first = validateFields(spec, { name: 'One' });
+		const second = validateFields(spec, { name: 'Two' });
+
+		first.tags.push('mine');
+
+		expect(second.tags).toEqual([]);
 	});
 
 	test('a partial update leaves absent fields out entirely', () => {

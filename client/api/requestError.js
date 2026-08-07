@@ -10,5 +10,3 @@ export const requestError = result => {
 
 	return response?.status ? `HTTP ${response.status}` : 'the server could not be reached';
 };
-
-export const isAuthError = result => result?.response?.status === 401;

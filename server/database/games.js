@@ -25,14 +25,6 @@ export default createCRUD(
 		steamEnriched: { type: 'boolean' },
 	},
 	{
-		beforeCreate(entry) {
-			// The CRUD layer defaults unset fields to '', collection-typed fields need real containers
-			if (!Array.isArray(entry.tags)) entry.tags = [];
-			if (!Array.isArray(entry.links)) entry.links = [];
-			if (!Array.isArray(entry.related)) entry.related = [];
-			if (typeof entry.files !== 'object' || Array.isArray(entry.files) || !entry.files) entry.files = {};
-			if (typeof entry.steamEnriched !== 'boolean') entry.steamEnriched = false;
-		},
 		async afterDelete(id) {
 			await deleteGameFiles(id);
 		},

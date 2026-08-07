@@ -7,6 +7,7 @@ import { Content } from '../Layout';
 import Markdown from '../Markdown';
 import { safeUrl } from '../safeUrl';
 import GameDialog from '../Games/GameDialog/GameDialog';
+import LoginDialog from '../Games/LoginDialog';
 import confirmDeleteGame from '../Games/confirmDeleteGame';
 import { gameMetaLabel, gameImageIds, gameAttachmentIds, relatedGames } from '../Games/gameModel';
 import MarkdownEditor from './MarkdownEditor';
@@ -281,6 +282,18 @@ export default class GamePage extends View {
 				icon: 'trash',
 				title: 'Delete game',
 				onPointerPress: () => confirmDeleteGame(game, () => navigate(context.libraryUrl)),
+			});
+		}
+
+		// A game page is what gets shared as a link, so it is where someone often arrives wanting
+		// to fix a typo in the rules. Without this the only way in is back to the library, which
+		// nothing on the page says.
+		if (!this.editing && !context.admin) {
+			new Button({
+				appendTo: this.header,
+				icon: 'lock',
+				title: 'Admin login',
+				onPointerPress: () => new LoginDialog(),
 			});
 		}
 	}

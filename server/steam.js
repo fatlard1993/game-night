@@ -30,24 +30,9 @@ const resolveSteamId = async (apiKey, input) => {
 	return result.steamid;
 };
 
-// One drain loop for the whole process: a second import arriving mid-trickle joins the queue
-// instead of doubling the request rate the store API is already unhappy about
+// Games waiting on their storefront pass, drained by one loop for the whole process
 const pending = [];
 let draining = false;
-
-const queueEnrichment = games => {
-	pending.push(...games);
-
-	if (draining) return;
-
-	draining = true;
-
-	enrichSteamGames()
-		.catch(error => console.error('Steam enrichment error', error))
-		.finally(() => {
-			draining = false;
-		});
-};
 
 // Storefront metadata + cover art, trickled slowly, the unauthenticated store API
 // rate-limits hard (~200 requests per 5 minutes)
@@ -117,9 +102,28 @@ const enrichSteamGames = async () => {
 	console.log(`Steam enrichment finished (${count} games)`);
 };
 
-// Games whose storefront pass never completed, oldest import first. An import interrupted by a
-// restart or a deploy leaves these behind; nothing else would ever come back for them.
-export const resumeSteamEnrichment = async () => {
+// A second import arriving mid-trickle joins the queue rather than starting a rival loop and
+// doubling the request rate the store API is already unhappy about. The parameter is not named
+// `games`: that is the db collection at module scope, and shadowing it here would be a quiet
+// trap for the next edit.
+const queueEnrichment = entries => {
+	pending.push(...entries);
+
+	if (draining) return;
+
+	draining = true;
+
+	enrichSteamGames()
+		.catch(error => console.error('Steam enrichment error', error))
+		.finally(() => {
+			draining = false;
+		});
+};
+
+// Games whose storefront pass never completed. An import interrupted by a restart or a deploy
+// leaves these behind; nothing else would ever come back for them. Returns immediately: the
+// queue drains in the background for as long as it takes.
+export const resumeSteamEnrichment = () => {
 	const awaiting = Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
 
 	if (awaiting.length === 0) return;

@@ -3,8 +3,11 @@ import { nanoid } from 'nanoid';
 import database from './database';
 import { isSafeKey, validateFields } from './validate';
 
-// `fields` is a spec: field name -> { type, required }. See ./validate for the types.
-export const createCRUD = (collection, fields, hooks = {}) => ({
+// `fields` is a spec: field name -> { type, required }, and each type carries its own unset
+// value, so nothing here needs to know what an empty tag list looks like. See ./validate.
+// afterDelete runs once the entry is out of the collection but before the write lands, so a
+// hook that throws can be undone.
+export const createCRUD = (collection, fields, { afterDelete } = {}) => ({
 	get data() {
 		return database.db.data[collection];
 	},
@@ -20,8 +23,6 @@ export const createCRUD = (collection, fields, hooks = {}) => ({
 
 		const entry = { ...validateFields(fields, data), id };
 
-		if (hooks.beforeCreate) await hooks.beforeCreate(entry, data);
-
 		this.data[id] = entry;
 		await database.write();
 
@@ -35,11 +36,7 @@ export const createCRUD = (collection, fields, hooks = {}) => ({
 	async update({ id, update }) {
 		if (!this.has(id)) return false;
 
-		const filtered = validateFields(fields, update, { partial: true });
-
-		if (hooks.beforeUpdate) await hooks.beforeUpdate(filtered);
-
-		this.data[id] = { ...this.data[id], ...filtered };
+		this.data[id] = { ...this.data[id], ...validateFields(fields, update, { partial: true }) };
 		await database.write();
 
 		return this.data[id];
@@ -52,7 +49,7 @@ export const createCRUD = (collection, fields, hooks = {}) => ({
 		delete this.data[id];
 
 		try {
-			if (hooks.afterDelete) await hooks.afterDelete(id, options);
+			if (afterDelete) await afterDelete(id, options);
 		} catch (error) {
 			this.data[id] = entry;
 			throw error;

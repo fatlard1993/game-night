@@ -17,17 +17,18 @@ afterAll(() => {
 	fs.rmSync(path.join(os.tmpdir(), `gameNight-crud-test-${process.pid}-files`), { recursive: true, force: true });
 });
 
-const spec = { name: { type: 'string', required: true }, note: { type: 'string' } };
+const spec = {
+	name: { type: 'string', required: true },
+	note: { type: 'string' },
+	tags: { type: 'stringArray' },
+};
 
-let hooks;
-const widgets = createCRUD('widgets', spec, {
-	beforeCreate: (...args) => hooks.beforeCreate?.(...args),
-	afterDelete: (...args) => hooks.afterDelete?.(...args),
-});
+let onDelete;
+const widgets = createCRUD('widgets', spec, { afterDelete: (...args) => onDelete?.(...args) });
 
 beforeEach(() => {
 	database.db.data.widgets = {};
-	hooks = {};
+	onDelete = undefined;
 });
 
 describe('create', () => {
@@ -39,9 +40,27 @@ describe('create', () => {
 		expect(widgets.read({ id: entry.id })).toEqual(entry);
 	});
 
-	test('refuses a body the fields cannot hold', () => {
-		expect(widgets.create({ name: { bad: 1 } })).rejects.toThrow(ValidationError);
-		expect(widgets.create({})).rejects.toThrow(ValidationError);
+	test('refuses a body the fields cannot hold', async () => {
+		await expect(widgets.create({ name: { bad: 1 } })).rejects.toThrow(ValidationError);
+		await expect(widgets.create({})).rejects.toThrow(ValidationError);
+	});
+
+	// Each type carries its own unset value, so a container field left out arrives as a
+	// container rather than as '' for something downstream to trip over
+	test('an absent field lands as the right kind of empty', async () => {
+		const entry = await widgets.create({ name: 'Anvil' });
+
+		expect(entry.note).toBe('');
+		expect(entry.tags).toEqual([]);
+	});
+
+	test('two entries do not share one empty container', async () => {
+		const first = await widgets.create({ name: 'One' });
+		const second = await widgets.create({ name: 'Two' });
+
+		first.tags.push('mine');
+
+		expect(second.tags).toEqual([]);
 	});
 });
 
@@ -82,7 +101,7 @@ describe('update', () => {
 	test('refuses a value of the wrong shape', async () => {
 		const { id } = await widgets.create({ name: 'Anvil' });
 
-		expect(widgets.update({ id, update: { name: [] } })).rejects.toThrow(ValidationError);
+		await expect(widgets.update({ id, update: { name: [] } })).rejects.toThrow(ValidationError);
 		expect(widgets.read({ id }).name).toBe('Anvil');
 	});
 
@@ -104,13 +123,11 @@ describe('delete', () => {
 	test('puts the entry back when the after-delete hook throws', async () => {
 		const created = await widgets.create({ name: 'Anvil', note: 'heavy' });
 
-		hooks.afterDelete = () => {
+		onDelete = () => {
 			throw new Error('disk is full');
 		};
 
-		expect(widgets.delete({ id: created.id })).rejects.toThrow('disk is full');
-
-		await Bun.sleep(0);
+		await expect(widgets.delete({ id: created.id })).rejects.toThrow('disk is full');
 
 		expect(widgets.read({ id: created.id })).toEqual(created);
 	});
