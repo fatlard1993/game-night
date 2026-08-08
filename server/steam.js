@@ -45,12 +45,23 @@ const enrichSteamGames = async () => {
 		count++;
 
 		try {
-			const coverResponse = await fetch(`https://cdn.akamai.steamstatic.com/steam/apps/${game.steamAppId}/header.jpg`);
+			// Every import from before steamEnriched existed lacks the flag, so the first boot
+			// after upgrading picks all of them up again. storeGameFile mints a new file each
+			// call, which would staple a second cover onto games that already have one: skip the
+			// fetch when there is already a picture, and the pass becomes safe to repeat.
+			const stored = games.read({ id: game.id });
+			const hasPicture = Object.values(stored?.files || {}).some(file => file.type?.startsWith('image/'));
 
-			if (coverResponse.ok && coverResponse.headers.get('content-type')?.startsWith('image/')) {
-				const buffer = Buffer.from(await coverResponse.arrayBuffer());
+			if (!hasPicture) {
+				const coverResponse = await fetch(
+					`https://cdn.akamai.steamstatic.com/steam/apps/${game.steamAppId}/header.jpg`,
+				);
 
-				await storeGameFile(game.id, buffer, { name: 'cover.jpg', contentType: 'image/jpeg' });
+				if (coverResponse.ok && coverResponse.headers.get('content-type')?.startsWith('image/')) {
+					const buffer = Buffer.from(await coverResponse.arrayBuffer());
+
+					await storeGameFile(game.id, buffer, { name: 'cover.jpg', contentType: 'image/jpeg' });
+				}
 			}
 
 			const detailsResponse = await fetch(`https://store.steampowered.com/api/appdetails?appids=${game.steamAppId}`);
