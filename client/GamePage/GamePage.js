@@ -404,9 +404,7 @@ export default class GamePage extends View {
 						const [coverId] = gameImageIds(other);
 
 						return new RelatedCard({
-							onPointerPress: event => {
-								if (event.button === 0) navigate(`/games/${other.id}`);
-							},
+							onPointerPress: () => navigate(`/games/${other.id}`),
 							append: [
 								coverId
 									? new Elem({ tag: 'img', src: gameFileUrl(other.id, coverId), alt: other.name, loading: 'lazy' })

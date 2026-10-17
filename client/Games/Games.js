@@ -187,10 +187,7 @@ export default class Games extends View {
 					new GameCard({
 						game,
 						attributes: { 'data-game-id': game.id },
-						// Primary button only; right-press falls through to the contextmenu handler
-						onPointerPress: event => {
-							if (event.button === 0) navigate(`/games/${game.id}`);
-						},
+						onPointerPress: () => navigate(`/games/${game.id}`),
 						onTagPress: tag => this.toolbar.addTagFilter(tag),
 					}),
 			),

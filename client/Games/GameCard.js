@@ -3,12 +3,6 @@ import { Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components
 import { gameFileUrl } from '../api';
 import { gameImageIds, gameMetaLabel } from './gameModel';
 
-// click isn't in the default event set; the anchor-like tag press wants full
-// click semantics (fires after pointerup, cancels on drag-away)
-class ClickTagList extends TagList {
-	static events = ['click'];
-}
-
 const Card = styled(
 	Component,
 	({ colors }) => `
@@ -114,7 +108,7 @@ const coverIcon = game => {
 	return 'puzzle-piece';
 };
 
-// Tag presses add a search chip instead of opening the game; swallow the events
+// Tag presses add a search chip instead of opening the game; swallow the click
 // the card's own onPointerPress would otherwise receive. Returns the pressed tag.
 const swallowTagEvent = event => {
 	const tag = event.target.closest('li[data-value]')?.dataset.value;
@@ -158,12 +152,10 @@ export default class GameCard extends Card {
 		if (meta) new Meta({ appendTo: this.body, textContent: meta });
 
 		if (game.tags?.length > 0) {
-			this.tagList = new ClickTagList({
+			this.tagList = new TagList({
 				appendTo: this.body,
 				readOnly: true,
 				tags: game.tags,
-				onPointerDown: swallowTagEvent,
-				onPointerUp: swallowTagEvent,
 				onClick: event => {
 					const tag = swallowTagEvent(event);
 
