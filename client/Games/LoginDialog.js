@@ -14,10 +14,13 @@ const ErrorNote = styled(
 // The password gates writing, never reading, so this is only reached by someone who set out to
 // edit something. Wrong guesses are slowed by the server, not here.
 export default class LoginDialog extends FormDialog {
+	static schema = {
+		saveLabel: { default: 'Log in' },
+	};
+
 	static prepareOptions(options) {
 		return {
 			header: 'Admin login',
-			saveLabel: 'Log in',
 			inputs: [{ key: 'password', label: 'Password', type: 'password' }],
 			data: { password: '' },
 			// A failed login keeps the dialog open with the reason
