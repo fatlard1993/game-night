@@ -1,4 +1,4 @@
-import { Dialog, Component, conditionalList, styled } from '@vanilla-bean/components';
+import { FormDialog, Component, styled } from '@vanilla-bean/components';
 
 import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
@@ -15,39 +15,29 @@ const ErrorNote = styled(
 	`,
 );
 
-export default class GameDialog extends Dialog {
-	constructor(options = {}) {
-		const isEdit = !!options.game?.id;
-
-		super({
-			size: 'large',
-			header: `${isEdit ? 'Edit' : 'Add'} Game${isEdit ? ` | ${options.game.name}` : ''}`,
-			buttons: conditionalList([{ alwaysItem: 'Save' }, { if: isEdit, thenItem: 'Delete' }, { alwaysItem: 'Cancel' }]),
-			onButtonPress: async ({ button }) => {
-				if (button === 'Save') {
-					if (this.form.hasErrors()) return;
-					if (!(await this.save())) return;
-				} else if (button === 'Delete') {
-					confirmDeleteGame(this.options.game);
-				}
-
-				this.close();
-			},
-			...options,
-		});
-	}
-
+export default class GameDialog extends FormDialog {
 	static schema = {
 		game: {},
+		size: { default: 'large' },
+		FormComponent: { default: GameForm },
 	};
+
+	static prepareOptions(options) {
+		const isEdit = !!options.game?.id;
+
+		return {
+			header: `${isEdit ? 'Edit' : 'Add'} Game${isEdit ? ` | ${options.game.name}` : ''}`,
+			data: options.game,
+			// A failed save keeps the dialog open with the reason
+			onSave: (data, dialog) => dialog._saveGame(),
+			// Deleting asks in a dialog of its own, which also keeps itself open on a failure
+			...(isEdit && { onDelete: (data, dialog) => confirmDeleteGame(dialog.options.game) }),
+			...options,
+		};
+	}
 
 	build() {
 		super.build();
-
-		this.form = new GameForm({
-			appendTo: this._body,
-			data: this.options.game,
-		});
 
 		this._loadGameNames();
 	}
@@ -55,9 +45,15 @@ export default class GameDialog extends Dialog {
 	// Feeds the related-games picker's autocomplete/verification list; the dialog can open
 	// before this lands, and can close before it resolves.
 	async _loadGameNames() {
+		// A cached list arrives at once, while the dialog is still being built and not yet on the page; it is only a closed
+		// dialog that should ignore it
+		let closed = false;
+
+		this.addCleanup('gameNamesClosed', () => (closed = true));
+
 		this._gamesRequest = await getGames({
 			onSuccess: response => {
-				if (!this.elem?.isConnected) return;
+				if (closed) return;
 
 				this.form.setGameNames(otherGameNames(response.body, this.options.game?.id));
 			},
@@ -68,7 +64,7 @@ export default class GameDialog extends Dialog {
 
 	// hypertether doesn't throw on HTTP errors; every mutation gets its ok checked and a failure
 	// keeps the dialog open with the reason instead of closing as if it worked
-	async save() {
+	async _saveGame() {
 		const { links, playersMin, playersMax, playTimeMin, playTimeMax, ...rest } = this.form.options.data;
 
 		const body = {
@@ -125,7 +121,7 @@ export default class GameDialog extends Dialog {
 	_showError(message, { response, body }) {
 		const detail = (typeof body === 'string' && body) || body?.error || `HTTP ${response?.status || '?'}`;
 
-		this._error ||= new ErrorNote({ appendTo: this._body });
+		this._error ||= new ErrorNote({ appendTo: this.body });
 		this._error.options.textContent = `${message}: ${detail}`;
 
 		return false;
