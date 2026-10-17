@@ -113,13 +113,6 @@ export default class GameForm extends Form {
 
 		this.append(new Label({ label: 'Related Games' }, this.relatedList));
 
-		// Enter in a tag field adds the tag (on keyup), so its keydown stops here rather than saving the dialog
-		for (const list of [this.tagList, this.relatedList]) {
-			list.tagInput?.elem.addEventListener('keydown', event => {
-				if (event.key === 'Enter') event.stopPropagation();
-			});
-		}
-
 		this._buildFilesSection();
 	}
 
