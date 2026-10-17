@@ -3,11 +3,12 @@
 import os from 'os';
 import path from 'path';
 
+import { hotReload } from '@vanilla-bean/components/app';
 import Argi from 'argi-cli';
 
 import { initAuth } from './auth';
 import database from './database/database';
-import server, { runBuild } from './server';
+import server from './server';
 import { resumeSteamEnrichment } from './steam';
 import { seedGames } from './utils/seedGames';
 
@@ -54,7 +55,7 @@ if (process.env.NODE_ENV === 'development') {
 			if (['stop', 'close', 'exit'].includes(line)) process.kill(process.pid, 'SIGTERM');
 			else if (line === 'b') {
 				console.log('>> Building...');
-				await runBuild();
+				await hotReload.rebuild();
 			}
 		}
 	} catch (error) {

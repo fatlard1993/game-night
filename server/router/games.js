@@ -1,8 +1,8 @@
+import { requestMatch } from '@vanilla-bean/components/app';
+
 import games from '../database/games';
 import { readGameFile, deleteGameFile } from '../utils/fileStorage';
 import { storeGameFile } from '../utils/gameFiles';
-
-import requestMatch from '../utils/requestMatch';
 
 // Big enough for phone photos and rulebook pdfs, small enough to keep dataUri JSON bodies sane
 const MAX_UPLOAD_BYTES = 15_000_000;

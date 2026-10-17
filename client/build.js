@@ -1,50 +1,6 @@
-import { watch } from 'fs';
+import { buildClient } from '@vanilla-bean/components/app';
 
-const build = async () => {
-	console.log('Building...');
+// Root-absolute asset URLs so deep history routes (/games/:id) still resolve chunks
+const { success } = await buildClient({ publicPath: '/' });
 
-	const buildResults = await Bun.build({
-		entrypoints: ['client/index.html'],
-		outdir: 'client/build',
-		minify: true,
-		// Root-absolute asset URLs so deep history routes (/games/:id) still resolve chunks
-		publicPath: '/',
-		define: {
-			// Inlined at build time; without an explicit value a plain `bun run build` (e.g. the
-			// prepare hook on a deploy box) bakes a development bundle, hotReload included
-			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-			'process.env.AUTOPREFIXER_GRID': 'undefined',
-			'process.cwd': 'String',
-		},
-		...(process.env.NODE_ENV === 'production' && { drop: ['console'] }),
-	});
-
-	console.log(buildResults.success ? 'build.success' : buildResults.logs);
-
-	return buildResults;
-};
-
-const enableWatcher = process.argv[2] === '--watch';
-const watcherIgnore = /^client\/build|^\./;
-
-if (enableWatcher) {
-	console.log(`Initializing watcher`);
-
-	let buildTimeout;
-
-	const watcher = watch(`${import.meta.dir}/..`, { recursive: true }, (event, filename) => {
-		if (watcherIgnore.test(filename)) return;
-
-		console.log(`Detected ${event} in ${filename}`);
-
-		clearTimeout(buildTimeout);
-		buildTimeout = setTimeout(build, 100);
-	});
-
-	process.on('SIGINT', () => {
-		watcher.close();
-		process.exit(0);
-	});
-}
-
-await build();
+if (!success) process.exit(1);

@@ -1,6 +1,6 @@
-import { checkPassword, clearedCookie, isAdmin, sessionCookie } from '../auth';
+import { requestMatch } from '@vanilla-bean/components/app';
 
-import requestMatch from '../utils/requestMatch';
+import { checkPassword, clearedCookie, isAdmin, sessionCookie } from '../auth';
 
 // argon2 already makes each guess expensive; this adds a growing delay on top so a script
 // on the LAN can't grind through a wordlist while everyone else keeps browsing

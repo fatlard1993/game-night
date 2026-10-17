@@ -1,13 +1,11 @@
-import { nanoid } from 'nanoid';
+import { requestMatch, serveStatic } from '@vanilla-bean/components/app';
 
 import { isAdmin } from '../auth';
 import { ValidationError } from '../database/validate';
-import requestMatch from '../utils/requestMatch';
 
 import gamesRoutes from './games';
 import sessionRoutes from './session';
 import steamRoutes from './steam';
-import staticRoutes from './static';
 
 // Reading is open to anyone on the LAN; every write goes through the admin session. One gate
 // here rather than per-route, so a new endpoint can't be added already unguarded.
@@ -27,7 +25,6 @@ const wrongContentType = request =>
 
 const router = async (request, server) => {
 	try {
-		let match;
 		let response;
 
 		if (wrongContentType(request)) return new Response('Expected a JSON body', { status: 415 });
@@ -40,17 +37,8 @@ const router = async (request, server) => {
 
 		// no-cache: revalidate index.html every load so a rebuild always reaches the browser;
 		// the hashed chunk files it references are safe to cache
-		match = requestMatch('GET', '/', request);
+		const match = requestMatch('GET', '/', request);
 		if (match) return new Response(Bun.file('client/build/index.html'), { headers: { 'Cache-Control': 'no-cache' } });
-
-		if (process.env.NODE_ENV === 'development') {
-			match = requestMatch('GET', '/ws', request);
-			if (match) {
-				const success = server.upgrade(request, { data: { clientId: nanoid() } });
-
-				return success ? undefined : new Response('WebSocket upgrade error', { status: 400 });
-			}
-		}
 
 		response = await gamesRoutes(request);
 		if (response) return response;
@@ -58,7 +46,7 @@ const router = async (request, server) => {
 		response = await steamRoutes(request);
 		if (response) return response;
 
-		response = await staticRoutes(request);
+		response = await serveStatic(request);
 		if (response) return response;
 
 		// SPA fallback, serve index.html for unmatched GET requests; /api gets a real 404,

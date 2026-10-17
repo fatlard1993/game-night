@@ -1,6 +1,6 @@
-import { importSteamLibrary, steamSettings, storedSteamCredentials } from '../steam';
+import { requestMatch } from '@vanilla-bean/components/app';
 
-import requestMatch from '../utils/requestMatch';
+import { importSteamLibrary, steamSettings, storedSteamCredentials } from '../steam';
 
 const steamRouter = async request => {
 	let match;
