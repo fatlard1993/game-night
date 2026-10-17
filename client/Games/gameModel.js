@@ -12,11 +12,6 @@ export const isLink = url => websiteRegex.test(url) || localhostRegex.test(url);
 
 export const fixLink = url => (/.+:\/\//.test(url) ? url : `https://${url}`);
 
-export const validateForm = form => {
-	document.activeElement?.blur();
-	return form.hasErrors();
-};
-
 // A number field left blank round-trips as '' through the db, treat anything non-numeric as unset
 export const asNumber = value => {
 	const number = Number(value);

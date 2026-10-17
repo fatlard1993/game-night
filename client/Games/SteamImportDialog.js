@@ -75,8 +75,8 @@ export default class SteamImportDialog extends Dialog {
 
 		this._importing = true;
 
-		// The Form commits inputs to its data store on change (blur), flush the focused field first
-		document.activeElement?.blur();
+		// The Form commits inputs to its data store on change (blur); take the focused field's typing too
+		this.form.commitPendingEdit();
 
 		const { apiKey, steamId, minHours } = this.form.options.data;
 

@@ -2,7 +2,7 @@ import { Dialog, Component, conditionalList, styled } from '@vanilla-bean/compon
 
 import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
-import { validateForm, parseLinks, otherGameNames, asNumber } from '../gameModel';
+import { parseLinks, otherGameNames, asNumber } from '../gameModel';
 
 import confirmDeleteGame from '../confirmDeleteGame';
 import GameForm from './GameForm';
@@ -25,7 +25,7 @@ export default class GameDialog extends Dialog {
 			buttons: conditionalList([{ alwaysItem: 'Save' }, { if: isEdit, thenItem: 'Delete' }, { alwaysItem: 'Cancel' }]),
 			onButtonPress: async ({ button }) => {
 				if (button === 'Save') {
-					if (validateForm(this.form)) return;
+					if (this.form.hasErrors()) return;
 					if (!(await this.save())) return;
 				} else if (button === 'Delete') {
 					confirmDeleteGame(this.options.game);
