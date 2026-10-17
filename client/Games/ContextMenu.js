@@ -1,6 +1,5 @@
-import { styled, Menu, isDescendantOf } from '@vanilla-bean/components';
+import { ContextMenu as LibraryContextMenu, styled } from '@vanilla-bean/components';
 
-const itemHeight = 37; // Menu item height in px, matches Menu component's rendered li height
 const reticleSize = 32; // Hexagonal click indicator size in px, used by augmented-ui for the hex shape
 
 const Reticle = styled.Component`
@@ -37,7 +36,9 @@ const Reticle = styled.Component`
 	}
 `;
 
-export default class ContextMenu extends styled.Popover(
+// The library's menu (items, dismissal, keyboard, edge placement), with this app's scale-in, backdrop and reticle
+export default class ContextMenu extends styled(
+	LibraryContextMenu,
 	({ colors }) => `
 		overflow: visible;
 		transform: scaleY(0);
@@ -79,84 +80,40 @@ export default class ContextMenu extends styled.Popover(
 				}
 			}
 		}
-
-		ul {
-			overflow: hidden;
-		}
-
-		li {
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
 	`,
-	{ autoOpen: false, sticky: false, maxWidth: 240 },
 ) {
 	static schema = {
-		items: {
-			set(value) {
-				if (!this.menu) this.menu = new Menu({ appendTo: this });
-
-				this.menu.options.items = value.map(item => ({
-					...item,
-					...(!this.options.sticky && {
-						onPointerPress: event => {
-							item.onPointerPress(event);
-
-							this.hide();
-						},
-					}),
-				}));
-
-				this.options.maxHeight = (value.length + 1) * itemHeight;
-			},
-		},
-		sticky: {},
+		// false for a dropdown under a button, which has no right-click point to mark
 		reticle: {},
 	};
 
 	build() {
-		const keyBinds = ({ key }) => {
-			if (this.isOpen && key === 'Escape') this.hide();
-		};
-		const pointerBinds = ({ target }) => {
-			// A target detached mid-event (e.g. a sticky item rebuilt by its own press handler)
-			// was inside the menu when clicked, not an outside press
-			if (this.isOpen && target.isConnected && !isDescendantOf(target, this.menu.elem)) this.hide();
-		};
+		super.build();
 
-		document.addEventListener('keyup', keyBinds);
-		document.addEventListener('pointerdown', pointerBinds);
-
-		this.addCleanup('contextMenu', () => {
-			document.removeEventListener('keyup', keyBinds);
-			document.removeEventListener('pointerdown', pointerBinds);
-			this.contextPointer?.elem.remove();
-		});
+		this.addCleanup('reticle', () => this.contextPointer?.elem.remove());
 	}
 
-	edgeAwarePlacement(options) {
-		const { x, y } = options;
+	show(options = {}) {
+		this.contextPointer?.elem.remove();
+		this.contextPointer = null;
 
-		if (this.contextPointer) this.contextPointer.elem.remove();
+		if (this.options.reticle !== false && options.x !== undefined) {
+			this.contextPointer = new Reticle({
+				appendTo: document.body,
+				attributes: { 'data-augmented-ui': 'all-hexangle-up' },
+				style: {
+					left: `${options.x - reticleSize / 2}px`,
+					top: `${options.y - reticleSize / 2}px`,
+				},
+			});
+		}
 
-		// The reticle marks a right-click point; dropdown-style usage (reticle: false) has none
-		if (this.options.reticle === false) return super.edgeAwarePlacement(options);
-
-		this.contextPointer = new Reticle({
-			appendTo: document.body,
-			attributes: { 'data-augmented-ui': 'all-hexangle-up' },
-			style: {
-				left: `${x - reticleSize / 2}px`,
-				top: `${y - reticleSize / 2}px`,
-			},
-		});
-
-		return super.edgeAwarePlacement(options);
+		super.show(options);
 	}
 
 	hide() {
-		if (this.contextPointer) this.contextPointer.elem.remove();
+		this.contextPointer?.elem.remove();
+		this.contextPointer = null;
 
 		super.hide();
 	}
