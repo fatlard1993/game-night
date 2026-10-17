@@ -38,7 +38,6 @@ export default class GameForm extends Form {
 	constructor(options = {}) {
 		// description and rules are edited on the game's page (markdown editor), not here,
 		// excluding them keeps a stale dialog from clobbering page-side edits
-		// eslint-disable-next-line no-unused-vars
 		const { tags, related, files, id, description, rules, ...gameData } = options.data || {};
 
 		super({

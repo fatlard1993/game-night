@@ -28,6 +28,7 @@ const database = {
 			throw new Error(
 				`Could not read the database at ${resolvedPath}: ${error.message}\n` +
 					'Fix the json, restore a backup, or point elsewhere with --database.',
+				{ cause: error },
 			);
 		}
 
