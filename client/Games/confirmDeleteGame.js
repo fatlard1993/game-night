@@ -3,7 +3,8 @@ import { Dialog } from '@vanilla-bean/components';
 import { deleteGame } from '../api';
 
 /**
- * Confirm, then delete the game and its files. The dialog stays open on failure.
+ * Confirm, then delete the game and its files. The dialog stays open on failure. Cancel comes first: the dialog
+ * focuses its first button, so a reflexive Enter keeps the game.
  * @param game the game to delete
  * @param onDeleted called after a successful delete, e.g. to leave the game's page
  */
@@ -12,7 +13,7 @@ export default function confirmDeleteGame(game, onDeleted) {
 		size: 'small',
 		header: `Delete "${game.name}"?`,
 		body: 'This also deletes its pictures and attachments.',
-		buttons: ['Delete', 'Cancel'],
+		buttons: ['Cancel', 'Delete'],
 		onButtonPress: async ({ button, dialog, closeDialog }) => {
 			if (button === 'Delete') {
 				const result = await deleteGame(game.id);
