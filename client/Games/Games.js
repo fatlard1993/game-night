@@ -28,6 +28,8 @@ export default class Games extends View {
 	constructor(options) {
 		super({
 			onContextMenu: event => this.showContextMenu(event),
+			// A touch screen has no right-click; holding a card brings the same menu
+			onLongPress: event => this.showContextMenu(event),
 			onConnected: () => this.load(),
 			...options,
 		});
