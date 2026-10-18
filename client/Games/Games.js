@@ -1,11 +1,10 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { View, Icon, Button, styled, Component } from '@vanilla-bean/components';
+import { View, Icon, Content, EmptyState, styled } from '@vanilla-bean/components';
 
 import { getGames, requestError } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
 
-import { Content } from '../Layout';
 import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
 import GameDialog from './GameDialog/GameDialog';
@@ -24,15 +23,6 @@ const CardGrid = styled.Component`
 	gap: 12px;
 	padding: 0 12px 12px;
 `;
-
-const EmptyMessage = styled(
-	Component,
-	() => `
-		margin: 6px auto;
-		padding: 6px 12px;
-		text-align: center;
-	`,
-);
 
 export default class Games extends View {
 	constructor(options) {
@@ -170,9 +160,9 @@ export default class Games extends View {
 		const hasAnyGames = Object.keys(this.gamesById()).length > 0;
 
 		if (games.length === 0) {
-			new EmptyMessage({
+			new EmptyState({
 				appendTo: this.content,
-				textContent: hasAnyGames
+				message: hasAnyGames
 					? 'No games match the current search/filters'
 					: 'No games yet .. Add them with the + button above',
 			});
@@ -197,19 +187,16 @@ export default class Games extends View {
 	// Distinct from the empty-library message on purpose: "no games yet" and "the library did not
 	// load" look identical to someone holding a phone, and only one of them is worth a retry
 	renderError() {
-		new EmptyMessage({
+		new EmptyState({
 			appendTo: this.content,
-			append: [
-				new Component({ textContent: `Could not load the library: ${requestError(this.games)}` }),
-				new Button({
-					textContent: 'Try again',
-					style: { margin: '12px auto 0' },
-					onPointerPress: () => {
-						this.renderLoader();
-						this.games.refetch?.();
-					},
-				}),
-			],
+			message: `Could not load the library: ${requestError(this.games)}`,
+			action: {
+				textContent: 'Try again',
+				onPointerPress: () => {
+					this.renderLoader();
+					this.games.refetch?.();
+				},
+			},
 		});
 	}
 

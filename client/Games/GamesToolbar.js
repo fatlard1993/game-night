@@ -1,9 +1,8 @@
-import { Button, Input, Select, debounce } from '@vanilla-bean/components';
+import { Button, Input, Select, Toolbar, debounce } from '@vanilla-bean/components';
 
 import { logOut } from '../api';
 import context from '../context';
 
-import { Toolbar } from '../Layout';
 import ContextMenu from './ContextMenu';
 import GameDialog from './GameDialog/GameDialog';
 import LoginDialog from './LoginDialog';

@@ -1,9 +1,19 @@
-import { View, Elem, Button, Dialog, Link, TagList, styled, Component } from '@vanilla-bean/components';
+import {
+	View,
+	Elem,
+	Button,
+	Content,
+	Dialog,
+	Link,
+	SectionLabel as LibrarySectionLabel,
+	TagList,
+	styled,
+	Component,
+} from '@vanilla-bean/components';
 
 import { getGame, getGames, updateGame, gameFileUrl, requestError } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
-import { Content } from '../Layout';
 import Markdown from '../Markdown';
 import { safeUrl } from '../safeUrl';
 import GameDialog from '../Games/GameDialog/GameDialog';
@@ -51,8 +61,9 @@ const Section = styled.Component`
 	margin: 0 0 18px;
 `;
 
+// The library's section heading, kept at the page's own small size
 const SectionLabel = styled(
-	Component,
+	LibrarySectionLabel,
 	({ colors }) => `
 		font-size: 0.8em;
 		text-transform: uppercase;
