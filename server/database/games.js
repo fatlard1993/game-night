@@ -1,13 +1,17 @@
+import { createStore } from '@vanilla-bean/components/app';
+
 import { deleteGameFiles } from '../utils/fileStorage';
 
-import { createCRUD } from './crud';
+import database from './database';
+import { fileMap, linkArray } from './fieldTypes';
 
 // files: fileId -> { name, type, size }, the binary lives on disk (see utils/fileStorage),
 // only metadata lives in the db. steamEnriched marks an import whose storefront fetch finished,
 // so an interrupted one can be picked up again on the next boot.
-export default createCRUD(
-	'games',
-	{
+export default createStore({
+	db: database,
+	collection: 'games',
+	fields: {
 		name: { type: 'string', required: true },
 		description: { type: 'string' },
 		setting: { type: 'string' },
@@ -17,16 +21,16 @@ export default createCRUD(
 		playTimeMin: { type: 'number' },
 		playTimeMax: { type: 'number' },
 		tags: { type: 'stringArray' },
-		links: { type: 'linkArray' },
+		links: { type: linkArray },
 		related: { type: 'stringArray' },
 		rules: { type: 'string' },
-		files: { type: 'fileMap' },
+		files: { type: fileMap },
 		steamAppId: { type: 'number' },
 		steamEnriched: { type: 'boolean' },
 	},
-	{
+	hooks: {
 		async afterDelete(id) {
 			await deleteGameFiles(id);
 		},
 	},
-);
+});
