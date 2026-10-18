@@ -1,4 +1,4 @@
-import { Form, Select, Input, Label, Button, Elem, TagList, styled } from '@vanilla-bean/components';
+import { Form, Select, Input, Label, Button, Elem, TagList, readFile, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../../api';
 import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../gameModel';
@@ -142,24 +142,20 @@ export default class GameForm extends Form {
 	_buildFilesSection() {
 		this.fileList = new Elem();
 
+		// The button opens the picker, and takes files dropped or pasted onto it
+		const uploadButton = new Button({
+			textContent: 'Attach files…',
+			// Not a submit: the drop zone opens the picker
+			onPointerPress: event => event.preventDefault(),
+		});
+
 		this.fileInput = new Input({
 			type: 'file',
 			multiple: true,
 			accept: 'image/*,.pdf,.txt,.md',
 			style: { display: 'none' },
-			onChange: ({ target }) => {
-				for (const file of target.files) this._addPendingFile(file);
-
-				target.value = '';
-			},
-		});
-
-		const uploadButton = new Button({
-			textContent: 'Attach files…',
-			onPointerPress: event => {
-				event.preventDefault();
-				this.fileInput.elem.click();
-			},
+			dropZone: uploadButton,
+			onFiles: files => files.forEach(file => this._addPendingFile(file)),
 		});
 
 		this.append(
@@ -186,25 +182,20 @@ export default class GameForm extends Form {
 		}
 	}
 
-	_addPendingFile(file) {
-		const reader = new FileReader();
+	async _addPendingFile(file) {
+		const dataUri = await readFile(file, 'dataURL');
+		const pending = { name: file.name, dataUri };
 
-		reader.onload = () => {
-			const pending = { name: file.name, dataUri: reader.result };
+		this._pendingFiles.push(pending);
 
-			this._pendingFiles.push(pending);
-
-			this._addFileRow({
-				name: file.name,
-				previewSrc: file.type.startsWith('image/') && reader.result,
-				onRemove: row => {
-					this._pendingFiles = this._pendingFiles.filter(entry => entry !== pending);
-					row.elem.remove();
-				},
-			});
-		};
-
-		reader.readAsDataURL(file);
+		this._addFileRow({
+			name: file.name,
+			previewSrc: file.type.startsWith('image/') && dataUri,
+			onRemove: row => {
+				this._pendingFiles = this._pendingFiles.filter(entry => entry !== pending);
+				row.elem.remove();
+			},
+		});
 	}
 
 	_addFileRow({ name, previewSrc, onRemove }) {
