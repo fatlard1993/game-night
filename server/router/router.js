@@ -34,7 +34,7 @@ const router = async (request, server) => {
 	if (requiresAdmin(request) && !isAdmin(request))
 		return Response.json({ error: 'Admin login required' }, { status: 401 });
 
-	// The page revalidates on every load, any other GET outside /api gets it for the client's router, and /api gets a
+	// The page is fetched fresh on every load, any other GET outside /api gets it for the client's router, and /api gets a
 	// real 404: an unknown endpoint answering 200 with HTML is the most confusing possible failure
 	return (
 		(await gamesRoutes(request)) ??
@@ -44,4 +44,6 @@ const router = async (request, server) => {
 	);
 };
 
-export default withErrors(router, { log: (...args) => console.error('An error was encountered processing a request\n', ...args) });
+export default withErrors(router, {
+	log: (...args) => console.error('An error was encountered processing a request\n', ...args),
+});
