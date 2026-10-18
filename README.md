@@ -46,6 +46,8 @@ bun run service:enable  # systemd user unit on linux, launchd agent on macos
 bun run deploy          # rebuild and restart the service after pulling changes
 ```
 
+The service comes from the component library's `vbc-service`. On macOS its agent is labelled `com.vanilla-bean.game-night`; a Mac still running the old `com.justfatlard.game-night` agent unloads that first (`launchctl unload ~/Library/LaunchAgents/com.justfatlard.game-night.plist`).
+
 ## Stack
 
 - [Bun](https://bun.sh) server with a tiny request-matching router
