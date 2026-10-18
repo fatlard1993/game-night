@@ -1,4 +1,4 @@
-import { requestMatch } from '@vanilla-bean/components/app';
+import { crudRoutes, requestMatch } from '@vanilla-bean/components/app';
 
 import games from '../database/games';
 import { readGameFile, deleteGameFile } from '../utils/fileStorage';
@@ -10,14 +10,10 @@ const MAX_UPLOAD_BYTES = 15_000_000;
 // A per-game ceiling as well as a per-file one; without it the disk is a loop of valid uploads away
 const MAX_FILES_PER_GAME = 40;
 
+const gameRoutes = crudRoutes('/api/games', games);
+
 const gamesRouter = async request => {
 	let match;
-
-	match = requestMatch('GET', '/api/games', request);
-	if (match) return Response.json(games.read());
-
-	match = requestMatch('POST', '/api/games', request);
-	if (match) return Response.json(await games.create(await request.json()), { status: 201 });
 
 	match = requestMatch('POST', '/api/games/:id/files', request);
 	if (match) {
@@ -81,22 +77,7 @@ const gamesRouter = async request => {
 		return Response.json(await games.update({ id: match.id, update: { files } }));
 	}
 
-	match = requestMatch('GET', '/api/games/:id', request);
-	if (match) {
-		const game = games.read(match);
-
-		return game ? Response.json(game) : new Response(null, { status: 404 });
-	}
-
-	match = requestMatch('PATCH', '/api/games/:id', request);
-	if (match) {
-		const game = await games.update({ ...match, update: await request.json() });
-
-		return game ? Response.json(game) : new Response(null, { status: 404 });
-	}
-
-	match = requestMatch('DELETE', '/api/games/:id', request);
-	if (match) return new Response(null, { status: (await games.delete(match)) ? 204 : 404 });
+	return gameRoutes(request);
 };
 
 export default gamesRouter;

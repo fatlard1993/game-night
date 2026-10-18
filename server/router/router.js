@@ -1,7 +1,6 @@
-import { requestMatch, serveStatic } from '@vanilla-bean/components/app';
+import { sameOrigin, serveApp, withErrors } from '@vanilla-bean/components/app';
 
 import { isAdmin } from '../auth';
-import { ValidationError } from '../database/validate';
 
 import gamesRoutes from './games';
 import sessionRoutes from './session';
@@ -24,44 +23,25 @@ const wrongContentType = request =>
 	!request.headers.get('content-type')?.includes('application/json');
 
 const router = async (request, server) => {
-	try {
-		let response;
+	// A write or socket from another site's page, or through a DNS name rebound to this machine
+	if (!sameOrigin(request)) return new Response('Cross-origin request refused', { status: 403 });
 
-		if (wrongContentType(request)) return new Response('Expected a JSON body', { status: 415 });
+	if (wrongContentType(request)) return new Response('Expected a JSON body', { status: 415 });
 
-		response = await sessionRoutes(request, server);
-		if (response) return response;
+	const response = await sessionRoutes(request, server);
+	if (response) return response;
 
-		if (requiresAdmin(request) && !isAdmin(request))
-			return Response.json({ error: 'Admin login required' }, { status: 401 });
+	if (requiresAdmin(request) && !isAdmin(request))
+		return Response.json({ error: 'Admin login required' }, { status: 401 });
 
-		// no-cache: revalidate index.html every load so a rebuild always reaches the browser;
-		// the hashed chunk files it references are safe to cache
-		const match = requestMatch('GET', '/', request);
-		if (match) return new Response(Bun.file('client/build/index.html'), { headers: { 'Cache-Control': 'no-cache' } });
-
-		response = await gamesRoutes(request);
-		if (response) return response;
-
-		response = await steamRoutes(request);
-		if (response) return response;
-
-		response = await serveStatic(request);
-		if (response) return response;
-
-		// SPA fallback, serve index.html for unmatched GET requests; /api gets a real 404,
-		// an unknown endpoint answering 200 with HTML is the most confusing possible failure
-		if (request.method === 'GET' && !new URL(request.url).pathname.startsWith('/api/'))
-			return new Response(Bun.file('client/build/index.html'), { headers: { 'Cache-Control': 'no-cache' } });
-
-		return new Response('Not Found', { status: 404 });
-	} catch (error) {
-		if (error instanceof ValidationError) return Response.json({ error: error.message }, { status: 400 });
-		if (error instanceof SyntaxError) return new Response('Invalid JSON', { status: 400 });
-
-		console.error('An error was encountered processing a request\n', error);
-
-		return new Response('Server Error', { status: 500 });
-	}
+	// The page revalidates on every load, any other GET outside /api gets it for the client's router, and /api gets a
+	// real 404: an unknown endpoint answering 200 with HTML is the most confusing possible failure
+	return (
+		(await gamesRoutes(request)) ??
+		(await steamRoutes(request)) ??
+		(await serveApp(request)) ??
+		new Response('Not Found', { status: 404 })
+	);
 };
-export default router;
+
+export default withErrors(router, { log: (...args) => console.error('An error was encountered processing a request\n', ...args) });
