@@ -1,4 +1,4 @@
-import { View, Elem, Button, Link, TagList, styled, Component } from '@vanilla-bean/components';
+import { View, Elem, Button, Dialog, Link, TagList, styled, Component } from '@vanilla-bean/components';
 
 import { getGame, getGames, updateGame, gameFileUrl, requestError } from '../api';
 import { navigate } from '../navigate';
@@ -486,10 +486,21 @@ export default class GamePage extends View {
 				}),
 				new Button({
 					textContent: 'Cancel',
-					onPointerPress: () => {
+					onPointerPress: async () => {
 						// Rules get written here in long sittings; discarding them on a single stray tap,
 						// with no undo and no draft anywhere, is the most expensive slip on the page
-						if (this._editsPending() && !window.confirm('Discard your unsaved changes?')) return;
+						if (
+							this._editsPending() &&
+							!(await Dialog.confirm({
+								variant: 'warning',
+								header: 'Discard changes?',
+								body: 'Your unsaved edits to the description and rules will be lost.',
+								confirmLabel: 'Discard',
+								cancelLabel: 'Keep editing',
+							}))
+						) {
+							return;
+						}
 
 						this.editing = false;
 						this.renderContent();
