@@ -2,9 +2,6 @@ import { hotReload } from '@vanilla-bean/components/app';
 
 import router from './router/router';
 
-// Same as client/build.js; the dev watcher builds these too
-export const buildOptions = { publicPath: '/' };
-
 export default {
 	init({ port }) {
 		const server = Bun.serve({
@@ -18,6 +15,6 @@ export default {
 
 		console.log(`Listening on ${server.hostname}:${server.port}`);
 
-		if (process.env.NODE_ENV === 'development') hotReload.watch(buildOptions);
+		if (process.env.NODE_ENV === 'development') hotReload.watch();
 	},
 };
