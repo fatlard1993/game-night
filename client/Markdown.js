@@ -31,7 +31,7 @@ const StyledMarkdown = styled(
 		overflow-wrap: break-word;
 
 		h1, h2 {
-			border-bottom: 1px solid ${colors.alpha(colors.gray, 0.4)};
+			border-bottom: 1px solid ${colors.border};
 			padding-bottom: 3px;
 		}
 
@@ -78,7 +78,7 @@ const StyledMarkdown = styled(
 			margin: 6px 0;
 
 			th, td {
-				border: 1px solid ${colors.alpha(colors.gray, 0.5)};
+				border: 1px solid ${colors.border};
 				padding: 4px 9px;
 			}
 
@@ -89,7 +89,7 @@ const StyledMarkdown = styled(
 
 		hr {
 			border: none;
-			border-top: 1px solid ${colors.alpha(colors.gray, 0.4)};
+			border-top: 1px solid ${colors.border};
 			margin: 12px 0;
 		}
 	`,
@@ -103,6 +103,7 @@ export const renderMarkdown = md =>
 		.replaceAll(/<pre><code class="language-([^\s"]+)/g, `<pre class="language-$1"><code class="language-$1`)
 		.replaceAll(/<blockquote>\s?<p>\s?\[!(\w+)]/g, `<blockquote class="$1"><p><strong>$1</strong></p><p>`);
 
+// vbc-markdown: the theme's voice for rendered markdown, green headings with their # markers
 export default class Markdown extends StyledMarkdown {
 	static schema = {
 		md: {
@@ -111,6 +112,10 @@ export default class Markdown extends StyledMarkdown {
 			},
 		},
 	};
+
+	static prepareOptions(options) {
+		return { ...options, addClass: ['vbc-markdown', options.addClass] };
+	}
 
 	build() {
 		this.elem.innerHTML = renderMarkdown(this.options.md);

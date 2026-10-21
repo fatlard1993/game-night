@@ -1,29 +1,21 @@
-import { Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
+import { Card, Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../api';
 import { gameImageIds, gameMetaLabel } from './gameModel';
 
-const Card = styled(
-	Component,
+// The cover runs to the card's edges; only the body below it is padded
+const CoverCard = styled(
+	Card,
 	({ colors }) => `
 		display: flex;
 		flex-direction: column;
-		border: 1px solid ${colors.alpha(colors.gray, 0.5)};
-		border-radius: 6px;
+		padding: 0;
 		overflow: hidden;
-		cursor: pointer;
-		background-color: ${colors.alpha(colors.white, 0.03)};
-		transition: border-color 0.2s, transform 0.2s;
 
 		/* Skip layout/paint for off-screen cards, the big win for a 150+ card grid.
 		   'auto' height remembers each card's real size once rendered, so the scrollbar stays stable. */
 		content-visibility: auto;
 		contain-intrinsic-size: auto 290px;
-
-		&:hover, &:focus-within {
-			border-color: ${colors.light(colors.blue)};
-			transform: translateY(-2px);
-		}
 
 		/* readOnly TagList disables pointer events, tags here are search shortcuts */
 		ul.readOnly {
@@ -88,7 +80,7 @@ const Meta = styled(
 	Component,
 	({ colors }) => `
 		font-size: 0.8em;
-		color: ${colors.light(colors.gray)};
+		color: ${colors.muted};
 	`,
 );
 
@@ -121,7 +113,7 @@ const swallowTagEvent = event => {
 	return tag;
 };
 
-export default class GameCard extends Card {
+export default class GameCard extends CoverCard {
 	static schema = {
 		game: {},
 		onTagPress: {},

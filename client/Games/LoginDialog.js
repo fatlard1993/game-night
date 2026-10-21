@@ -7,7 +7,7 @@ import context from '../context';
 const ErrorNote = styled(
 	Component,
 	({ colors }) => `
-		color: ${colors.light(colors.red)};
+		color: ${colors.light(colors.danger)};
 		margin: 9px 0 0;
 	`,
 );

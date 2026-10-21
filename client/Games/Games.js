@@ -1,5 +1,5 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { View, Icon, Content, EmptyState, styled } from '@vanilla-bean/components';
+import { View, Content, ContextMenu, EmptyState, styled } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
 import { getGames } from '../api';
@@ -9,7 +9,6 @@ import context from '../context';
 import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
 import GameDialog from './GameDialog/GameDialog';
-import ContextMenu from './ContextMenu';
 import confirmDeleteGame from './confirmDeleteGame';
 import { gameHaystack, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './gameModel';
 
@@ -97,18 +96,7 @@ export default class Games extends View {
 	renderLoader() {
 		this.content.empty();
 
-		new Icon({
-			appendTo: this.content,
-			icon: 'spinner',
-			animation: 'spin-pulse',
-			styles: ({ colors }) => ({
-				fontSize: '20vh',
-				marginTop: '20%',
-				display: 'flex',
-				justifyContent: 'center',
-				color: colors.blue,
-			}),
-		});
+		new EmptyState({ appendTo: this.content, loading: true });
 	}
 
 	getFilteredGames() {
@@ -163,6 +151,7 @@ export default class Games extends View {
 		if (games.length === 0) {
 			new EmptyState({
 				appendTo: this.content,
+				icon: hasAnyGames ? 'magnifying-glass' : 'dice',
 				message: hasAnyGames
 					? 'No games match the current search/filters'
 					: 'No games yet .. Add them with the + button above',

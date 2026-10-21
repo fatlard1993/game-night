@@ -1,4 +1,4 @@
-import { Component, Input, styled, debounce } from '@vanilla-bean/components';
+import { Input, SectionLabel, styled, debounce } from '@vanilla-bean/components';
 
 import Markdown from '../Markdown';
 
@@ -16,27 +16,15 @@ const Pane = styled.Component`
 	flex-direction: column;
 `;
 
-const PaneLabel = styled(
-	Component,
-	({ colors }) => `
-		font-size: 0.8em;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: ${colors.light(colors.gray)};
-		margin: 0 0 3px;
-	`,
-);
-
 const Editor = styled(
 	Input,
-	({ colors }) => `
+	() => `
 		flex: 1;
 		width: 100%;
 		min-height: 240px;
 		resize: vertical;
 		font-family: monospace;
 		font-size: 0.9em;
-		background-color: ${colors.alpha(colors.black, 0.3)};
 	`,
 );
 
@@ -47,7 +35,7 @@ const Preview = styled(
 		min-height: 240px;
 		overflow: auto;
 		padding: 9px 12px;
-		border: 1px dashed ${colors.alpha(colors.gray, 0.5)};
+		border: 1px dashed ${colors.border};
 		border-radius: 6px;
 	`,
 );
@@ -79,9 +67,12 @@ export default class MarkdownEditor extends Container {
 			}, 300),
 		});
 
+		// The panes' tops line up with the heading above the page body, not 16px under it
+		const label = textContent => new SectionLabel({ textContent, style: { marginTop: 0 } });
+
 		this.append(
-			new Pane({ append: [new PaneLabel({ textContent: `${this.options.label} (markdown)` }), this.editor] }),
-			new Pane({ append: [new PaneLabel({ textContent: 'Preview' }), this.preview] }),
+			new Pane({ append: [label(`${this.options.label} (markdown)`), this.editor] }),
+			new Pane({ append: [label('Preview'), this.preview] }),
 		);
 	}
 }

@@ -2,11 +2,14 @@ import {
 	View,
 	Elem,
 	Button,
+	Card,
 	Content,
 	Dialog,
+	EmptyState,
 	Link,
-	SectionLabel as LibrarySectionLabel,
+	SectionLabel,
 	TagList,
+	Toolbar,
 	styled,
 	Component,
 } from '@vanilla-bean/components';
@@ -29,31 +32,17 @@ class ClickLink extends Link {
 	static events = ['click'];
 }
 
-const Header = styled.Component`
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	margin: 12px;
-`;
-
-const Title = styled.Component`
-	font-size: 1.5em;
-	font-weight: bold;
-	flex: 1;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-`;
-
-const Body = styled.Component`
-	padding: 0 18px 18px;
-	max-width: 980px;
-`;
+const Body = styled(
+	Component,
+	({ space }) => `
+		padding: ${space.md} 0 ${space.lg};
+	`,
+);
 
 const Meta = styled(
 	Component,
 	({ colors }) => `
-		color: ${colors.light(colors.gray)};
+		color: ${colors.muted};
 		margin: 0 0 9px;
 	`,
 );
@@ -61,18 +50,6 @@ const Meta = styled(
 const Section = styled.Component`
 	margin: 0 0 18px;
 `;
-
-// The library's section heading, kept at the page's own small size
-const SectionLabel = styled(
-	LibrarySectionLabel,
-	({ colors }) => `
-		font-size: 0.8em;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: ${colors.light(colors.gray)};
-		margin: 0 0 3px;
-	`,
-);
 
 const Gallery = styled.Component`
 	display: flex;
@@ -101,7 +78,7 @@ const EditBar = styled.Component`
 const ErrorNote = styled(
 	Component,
 	({ colors }) => `
-		color: ${colors.light(colors.red)};
+		color: ${colors.light(colors.danger)};
 		margin: 0 0 12px;
 
 		&:empty { display: none; }
@@ -115,21 +92,12 @@ const RelatedRow = styled.Component`
 `;
 
 const RelatedCard = styled(
-	Component,
+	Card,
 	({ colors }) => `
 		display: flex;
 		align-items: center;
 		gap: 8px;
 		padding: 4px 12px 4px 4px;
-		border: 1px solid ${colors.alpha(colors.gray, 0.5)};
-		border-radius: 6px;
-		cursor: pointer;
-		background-color: ${colors.alpha(colors.white, 0.03)};
-		transition: border-color 0.2s;
-
-		&:hover {
-			border-color: ${colors.light(colors.blue)};
-		}
 
 		img, i {
 			width: 36px;
@@ -158,8 +126,8 @@ export default class GamePage extends View {
 	}
 
 	build() {
-		this.header = new Header({ appendTo: this });
-		this.content = new Content({ appendTo: this });
+		this.header = new Toolbar({ appendTo: this, variant: 'bar', wrap: false });
+		this.content = new Content({ appendTo: this, column: true });
 	}
 
 	async load() {
@@ -224,28 +192,17 @@ export default class GamePage extends View {
 		const game = failed ? null : this.game.body;
 
 		this.header.empty();
+		this.header.elem.style.display = game ? '' : 'none';
 		this.content.empty();
 
 		if (!game) {
-			new Elem({
+			new EmptyState({
 				appendTo: this.content,
-				style: { margin: '24px' },
-				textContent: failed ? `Could not load this game: ${failureReason(this.game)}` : 'Game not found',
-			});
-
-			if (failed) {
-				new Button({
-					appendTo: this.content,
-					textContent: 'Try again',
-					style: { margin: '0 24px 12px' },
-					onPointerPress: () => this.game.refetch?.(),
-				});
-			}
-
-			this._backLink({
-				appendTo: this.content,
-				textContent: 'Back to library',
-				style: { margin: '0 24px' },
+				icon: failed ? 'triangle-exclamation' : 'dice',
+				title: failed ? 'Could not load this game' : 'Game not found',
+				message: failed ? failureReason(this.game) : '',
+				action: failed ? { textContent: 'Try again', onPointerPress: () => this.game.refetch?.() } : undefined,
+				append: this._backLink({ textContent: 'Back to library' }),
 			});
 
 			return;
@@ -260,9 +217,9 @@ export default class GamePage extends View {
 	}
 
 	_renderHeader(game) {
-		this._backLink({ appendTo: this.header, icon: 'arrow-left' });
+		this.header.options.heading = game.name;
 
-		new Title({ appendTo: this.header, textContent: game.name, title: game.name });
+		this._backLink({ appendTo: this.header, addClass: 'start', icon: 'arrow-left' });
 
 		// Editing writes, and every write needs an admin session; without one the page is
 		// read-only rather than offering buttons the server would refuse
@@ -298,6 +255,7 @@ export default class GamePage extends View {
 		if (!this.editing && !context.admin) {
 			new Button({
 				appendTo: this.header,
+				variant: 'flat',
 				icon: 'lock',
 				title: 'Admin login',
 				onPointerPress: () => new LoginDialog(),

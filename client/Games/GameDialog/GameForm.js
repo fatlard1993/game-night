@@ -207,6 +207,7 @@ export default class GameForm extends Form {
 
 		new Button({
 			appendTo: row,
+			variant: 'flat',
 			icon: 'close',
 			onPointerPress: event => {
 				event.preventDefault();
