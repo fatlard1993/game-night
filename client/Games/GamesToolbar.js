@@ -1,9 +1,8 @@
-import { Button, Input, Select, Toolbar, debounce } from '@vanilla-bean/components';
+import { Button, Component, ContextMenu, Input, Select, Toolbar, debounce, styled } from '@vanilla-bean/components';
 
 import { logOut } from '../api';
 import context from '../context';
 
-import ContextMenu from './ContextMenu';
 import GameDialog from './GameDialog/GameDialog';
 import LoginDialog from './LoginDialog';
 import MultiselectFilter from './MultiselectFilter';
@@ -11,15 +10,10 @@ import SearchChips from './SearchChips';
 import SteamImportDialog from './SteamImportDialog';
 import { COMPLEXITY_LEVELS, SETTINGS } from './gameModel';
 
-// Square icon-only buttons: the add and session controls at the end of the toolbar
-const iconButtonStyles = `
-	&:empty {
-		padding: 0;
-		margin: 6px;
-		font-size: 1.3em;
-		height: 2.4rem;
-		width: 2.4rem;
-	}
+// Selects size to their label rather than the field default's full width
+const selectStyles = () => `
+	width: auto;
+	flex: none;
 `;
 
 const TIME_FILTERS = [
@@ -30,7 +24,38 @@ const TIME_FILTERS = [
 	{ label: '< 2 hours', value: '120' },
 ];
 
-export default class GamesToolbar extends Toolbar {
+// The filters are one row that scrolls sideways when it runs out of room, so on a phone the search takes a row of
+// its own and the filters one more, instead of the controls wrapping into a stack above the games
+const Filters = styled(
+	Component,
+	({ space }) => `
+		display: flex;
+		align-items: center;
+		gap: ${space.sm};
+		flex: 0 1 auto;
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+		/* Room for the focus ring, which overflow would otherwise clip */
+		padding: 3px;
+		margin: -3px;
+	`,
+);
+
+export default class GamesToolbar extends styled(
+	Toolbar,
+	({ media }) => `
+		@media ${media.phone} {
+			& > .searchChips {
+				flex-basis: 100%;
+			}
+
+			& > .filters {
+				flex: 1;
+			}
+		}
+	`,
+) {
 	static schema = {
 		onFilterChange: {},
 		initial: {},
@@ -44,73 +69,60 @@ export default class GamesToolbar extends Toolbar {
 
 		this.search = new SearchChips({
 			appendTo: this.elem,
+			addClass: 'searchChips',
 			placeholder: 'Search games, tags, descriptions...',
 			initialText: initial.search?.text || context.preRenderSearch || '',
 			initialChips: initial.search?.chips || [],
 			onSearchChange: value => this._emitSearch(value),
 		});
 
+		this.filterRow = new Filters({ appendTo: this.elem, addClass: 'filters' });
+
 		// Setting is the primary "where-like" axis, sits up front with players and time
 		this.setting = new Select({
-			appendTo: this.elem,
+			appendTo: this.filterRow,
 			value: initial.setting || '',
 			options: [{ label: 'Any setting', value: '' }, ...SETTINGS],
-			styles: () => `
-				width: auto;
-				flex: none;
-				margin: 6px 0;
-				height: 2.4rem;
-			`,
+			styles: selectStyles,
 			onChange: ({ value }) => this._emit({ setting: value }),
 		});
 
 		this.players = new Input({
 			type: 'number',
-			appendTo: this.elem,
+			appendTo: this.filterRow,
 			placeholder: 'Players',
 			min: 1,
 			value: initial.players || '',
 			styles: () => `
-				width: 5.4rem;
-				margin: 6px 0;
-				height: 2.4rem;
+				width: 6.5rem;
+				flex: none;
 			`,
 			// 'input' also covers the native number spinners
 			onInput: debounce(({ value }) => this._emit({ players: value }), 300),
 		});
 
 		this.time = new Select({
-			appendTo: this.elem,
+			appendTo: this.filterRow,
 			value: initial.maxTime || '',
 			options: TIME_FILTERS,
-			styles: () => `
-				width: auto;
-				flex: none;
-				margin: 6px 0;
-				height: 2.4rem;
-			`,
+			styles: selectStyles,
 			onChange: ({ value }) => this._emit({ maxTime: value }),
 		});
 
 		this.complexity = new Select({
-			appendTo: this.elem,
+			appendTo: this.filterRow,
 			value: initial.maxComplexity || '',
 			options: [
 				{ label: 'Any complexity', value: '' },
 				...COMPLEXITY_LEVELS.map((level, index) => ({ label: index === 0 ? level : `≤ ${level}`, value: level })),
 			],
-			styles: () => `
-				width: auto;
-				flex: none;
-				margin: 6px 0;
-				height: 2.4rem;
-			`,
+			styles: selectStyles,
 			onChange: ({ value }) => this._emit({ maxComplexity: value }),
 		});
 
 		this.tagFilter = new MultiselectFilter({
 			appendTo: this,
-			buttonParent: this.elem,
+			buttonParent: this.filterRow,
 			label: 'tags',
 			searchable: true,
 			showCounts: true,
@@ -136,7 +148,6 @@ export default class GamesToolbar extends Toolbar {
 
 		this.addButton = new Button({
 			appendTo: this.elem,
-			styles: () => iconButtonStyles,
 			icon: 'plus',
 			title: 'Add Game',
 			onPointerPress: event => {
@@ -154,7 +165,7 @@ export default class GamesToolbar extends Toolbar {
 
 		this.sessionButton = new Button({
 			appendTo: this.elem,
-			styles: () => iconButtonStyles,
+			variant: 'flat',
 			onPointerPress: () => (context.admin ? logOut().then(() => (context.admin = false)) : new LoginDialog()),
 		});
 

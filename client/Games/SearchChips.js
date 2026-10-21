@@ -1,67 +1,59 @@
 import { Component, Elem, Button, styled } from '@vanilla-bean/components';
 
+// Drawn as the theme's field, with the chips and the text input inside it
 const Container = styled(
 	Component,
-	({ colors }) => `
+	({ input, colors, space }) => `
+		${input}
+
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 4px;
+		gap: ${space.xs};
 		flex: 3;
 		min-width: 200px;
-		margin: 6px;
-		min-height: 2.4rem;
 		padding: 2px 6px;
-		box-sizing: border-box;
-		border: 1px solid ${colors.gray};
-		border-radius: 3px;
-		background-color: ${colors.darkest(colors.gray)};
 		cursor: text;
 
-		&:focus-within {
-			border-color: ${colors.light(colors.blue)};
-		}
-
-		input {
+		/* The field look is the container's; the input inside it is bare, focused or not */
+		& input, & input:focus {
 			flex: 1;
 			min-width: 120px;
 			border: none;
 			outline: none;
+			box-shadow: none;
 			background: transparent;
 			color: ${colors.white};
-			height: 2rem;
-			padding: 0 3px;
+			height: 26px;
+			padding: 0 2px;
 		}
 	`,
 );
 
 const Chip = styled(
 	Component,
-	({ colors }) => `
+	({ colors, radius, space }) => `
 		display: inline-flex;
 		align-items: center;
-		gap: 4px;
-		padding: 2px 4px 2px 8px;
+		gap: ${space.xs};
+		padding: 0 2px 0 8px;
 		font-size: 0.85em;
-		background-color: ${colors.black};
-		border: 1px solid ${colors.alpha(colors.teal, 0.5)};
-		border-radius: 3px;
+		border: 1px solid ${colors.light(colors.blue)};
+		border-radius: ${radius.pill};
+		background-color: ${colors.alpha(colors.blue, 0.3)};
 		white-space: nowrap;
-
-		button {
-			width: 16px !important;
-			height: 16px !important;
-			font-size: 9px;
-			padding: 0;
-			opacity: 0.5;
-			background: transparent !important;
-
-			&:after { display: none; }
-
-			&:hover { opacity: 1; }
-		}
 	`,
 );
+
+// The chip's own small remove control, smaller than the default icon button
+const removeStyles = () => `
+	&, &:empty, &.icon {
+		width: 18px;
+		height: 18px;
+		font-size: 9px;
+		border-radius: 50%;
+	}
+`;
 
 /**
  * Search input that accumulates committed terms as removable chips alongside live free text.
@@ -143,7 +135,12 @@ export default class SearchChips extends Container {
 		chip.component = new Chip(
 			{},
 			new Elem({ tag: 'span', textContent: term }),
-			new Button({ icon: 'close', onPointerPress: () => this.removeChip(chip) }),
+			new Button({
+				icon: 'close',
+				variant: 'flat',
+				styles: removeStyles,
+				onPointerPress: () => this.removeChip(chip),
+			}),
 		);
 
 		this.chips.push(chip);

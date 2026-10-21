@@ -33,7 +33,7 @@ export default class MultiselectFilter extends styled.Popover(
 		& .filterSearch {
 			margin: 0;
 			border: none;
-			border-bottom: 1px solid ${colors.light(colors.gray)};
+			border-bottom: 1px solid ${colors.border};
 			border-radius: 0;
 			flex-shrink: 0;
 		}
@@ -51,21 +51,21 @@ export default class MultiselectFilter extends styled.Popover(
 			cursor: pointer;
 			white-space: nowrap;
 
-			&:hover { background-color: ${colors.alpha(colors.blue, 0.2)}; }
+			&:hover { background-color: ${colors.alpha(colors.white, 0.08)}; }
 
-			&.selected { background-color: ${colors.alpha(colors.teal, 0.25)}; }
+			&.selected { background-color: ${colors.alpha(colors.blue, 0.25)}; }
 
 			& .check {
 				width: 14px;
 				flex-shrink: 0;
-				color: ${colors.light(colors.teal)};
+				color: ${colors.lighter(colors.blue)};
 			}
 
 			& .count {
 				margin-left: auto;
 				padding-left: 12px;
 				font-size: 0.8em;
-				color: ${colors.light(colors.gray)};
+				color: ${colors.muted};
 			}
 		}
 
@@ -74,7 +74,7 @@ export default class MultiselectFilter extends styled.Popover(
 			justify-content: space-between;
 			gap: 6px;
 			padding: 6px;
-			border-top: 1px solid ${colors.light(colors.gray)};
+			border-top: 1px solid ${colors.border};
 			flex-shrink: 0;
 		}
 	`,
@@ -100,13 +100,18 @@ export default class MultiselectFilter extends styled.Popover(
 		this.button = new Button({
 			appendTo: this.options.buttonParent,
 			textContent: this._buttonLabel(),
-			styles: () => `
-				margin: 6px 0;
-				height: 2.4rem;
+			// Drawn as a field, like the selects it sits among
+			styles: ({ input }) => `
+				${input}
+				width: auto;
+				flex: none;
 			`,
 			onPointerPress: event => {
 				event.preventDefault();
 				event.stopPropagation();
+
+				// The button may sit scrolled out of a filter row that overflows; the popover opens under where it shows
+				this.button.elem.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
 				const rect = this.button.elem.getBoundingClientRect();
 
@@ -140,7 +145,7 @@ export default class MultiselectFilter extends styled.Popover(
 
 		this.footer = new Elem(
 			{ appendTo: this, addClass: 'filterFooter' },
-			new Button({ textContent: 'Clear', onPointerPress: () => this.clear() }),
+			new Button({ textContent: 'Clear', variant: 'flat', onPointerPress: () => this.clear() }),
 			new Button({ textContent: 'Done', onPointerPress: () => this.hide() }),
 		);
 
