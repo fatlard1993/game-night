@@ -1,4 +1,4 @@
-import { sameOrigin, serveApp, withErrors } from '@vanilla-bean/components/app';
+import { serveApp, withErrors } from '@vanilla-bean/components/app';
 
 import { isAdmin } from '../auth';
 
@@ -23,9 +23,6 @@ const wrongContentType = request =>
 	!request.headers.get('content-type')?.includes('application/json');
 
 const router = async (request, server) => {
-	// A write or socket from another site's page, or through a DNS name rebound to this machine
-	if (!sameOrigin(request)) return new Response('Cross-origin request refused', { status: 403 });
-
 	if (wrongContentType(request)) return new Response('Expected a JSON body', { status: 415 });
 
 	const response = await sessionRoutes(request, server);
@@ -34,14 +31,9 @@ const router = async (request, server) => {
 	if (requiresAdmin(request) && !isAdmin(request))
 		return Response.json({ error: 'Admin login required' }, { status: 401 });
 
-	// The page is fetched fresh on every load, any other GET outside /api gets it for the client's router, and /api gets a
-	// real 404: an unknown endpoint answering 200 with HTML is the most confusing possible failure
-	return (
-		(await gamesRoutes(request)) ??
-		(await steamRoutes(request)) ??
-		(await serveApp(request)) ??
-		new Response('Not Found', { status: 404 })
-	);
+	// The page is fetched fresh on every load, any other GET outside /api gets it for the client's router, and /api is left
+	// for serve's 404: an unknown endpoint answering 200 with HTML is the most confusing possible failure
+	return (await gamesRoutes(request)) ?? (await steamRoutes(request)) ?? serveApp(request);
 };
 
 export default withErrors(router, {

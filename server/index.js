@@ -3,16 +3,16 @@
 import os from 'os';
 import path from 'path';
 
-import { hotReload } from '@vanilla-bean/components/app';
+import { devConsole, handleExit, serve } from '@vanilla-bean/components/app';
 import Argi from 'argi-cli';
 
 import { initAuth } from './auth';
 import database from './database/database';
-import server from './server';
 import { resumeSteamEnrichment } from './steam';
+import router from './router/router';
 import { seedGames } from './utils/seedGames';
 
-import './exit';
+handleExit();
 
 const { options } = new Argi({
 	options: {
@@ -43,22 +43,15 @@ await initAuth({ password: options.password || process.env.GAME_NIGHT_PASSWORD }
 
 await seedGames();
 
-server.init({ port: options.port });
+await serve({
+	port: options.port,
+	router,
+	// Fits the 15MB upload cap plus its base64/JSON overhead; anything bigger is rejected before it can balloon memory
+	maxRequestBodySize: 32_000_000,
+});
 
 // A Steam import trickles storefront data for minutes; if the process stopped partway through,
 // the rest of that library would have stayed bare forever without this
 resumeSteamEnrichment();
 
-if (process.env.NODE_ENV === 'development') {
-	try {
-		for await (const line of console) {
-			if (['stop', 'close', 'exit'].includes(line)) process.kill(process.pid, 'SIGTERM');
-			else if (line === 'b') {
-				console.log('>> Building...');
-				await hotReload.rebuild();
-			}
-		}
-	} catch (error) {
-		console.error('Build Error', error);
-	}
-}
+devConsole();
