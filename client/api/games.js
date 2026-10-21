@@ -1,17 +1,16 @@
-import { GET, POST, PATCH, DELETE } from '@vanilla-bean/hypertether';
+import { POST, DELETE, resource } from '@vanilla-bean/hypertether';
 
-export const getGames = async options => await GET('/api/games', { apiId: 'games', ...options });
+const games = resource('/api/games');
 
-export const getGame = async (id, options) =>
-	await GET('/api/games/:id', { apiId: ['games', id], urlParameters: { id }, ...options });
+export const getGames = options => games.list(options);
 
-export const createGame = async options => await POST('/api/games', { invalidates: ['games'], ...options });
+export const getGame = (id, options) => games.read(id, options);
 
-export const updateGame = async (id, options) =>
-	await PATCH('/api/games/:id', { invalidates: ['games'], urlParameters: { id }, ...options });
+export const createGame = options => games.create(options);
 
-export const deleteGame = async (id, options) =>
-	await DELETE('/api/games/:id', { invalidates: ['games'], urlParameters: { id }, ...options });
+export const updateGame = (id, options) => games.update(id, options);
+
+export const deleteGame = (id, options) => games.delete(id, options);
 
 export const uploadGameFile = async (id, { name, dataUri }, options) =>
 	await POST('/api/games/:id/files', {

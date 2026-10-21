@@ -1,6 +1,4 @@
-import { styled, Component, Elem, Input, Button, isDescendantOf } from '@vanilla-bean/components';
-
-const capitalize = word => word.charAt(0).toUpperCase() + word.slice(1);
+import { styled, Component, Elem, Input, Button, capitalize, isDescendantOf } from '@vanilla-bean/components';
 
 // A multiselect OR filter: a button that opens a searchable checklist popover over a dynamic
 // {value: count} vocabulary (counts shown, values below minCount hidden). Owns its own button.

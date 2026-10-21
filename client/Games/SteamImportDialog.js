@@ -1,6 +1,7 @@
 import { Dialog, Form, Elem, Link } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
-import { getSteamSettings, importSteamLibrary, requestError } from '../api';
+import { getSteamSettings, importSteamLibrary } from '../api';
 
 export default class SteamImportDialog extends Dialog {
 	constructor(options = {}) {
@@ -88,7 +89,7 @@ export default class SteamImportDialog extends Dialog {
 		this._importing = false;
 
 		if (result.status !== 'success') {
-			this.status.elem.textContent = `Import failed: ${requestError(result)}`;
+			this.status.elem.textContent = `Import failed: ${failureReason(result)}`;
 
 			return;
 		}

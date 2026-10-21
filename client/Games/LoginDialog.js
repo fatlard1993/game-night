@@ -1,6 +1,7 @@
 import { FormDialog, Component, Elem, styled } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
-import { logIn, requestError } from '../api';
+import { logIn } from '../api';
 import context from '../context';
 
 const ErrorNote = styled(
@@ -45,7 +46,7 @@ export default class LoginDialog extends FormDialog {
 
 		if (result.status !== 'success') {
 			this._error ||= new ErrorNote({ appendTo: this.body });
-			this._error.options.textContent = `Login failed: ${requestError(result)}`;
+			this._error.options.textContent = `Login failed: ${failureReason(result)}`;
 
 			return false;
 		}

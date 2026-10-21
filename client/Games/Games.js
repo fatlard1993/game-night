@@ -1,7 +1,8 @@
 import uFuzzy from '@leeoniya/ufuzzy';
 import { View, Icon, Content, EmptyState, styled } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
-import { getGames, requestError } from '../api';
+import { getGames } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
 
@@ -59,9 +60,7 @@ export default class Games extends View {
 			if (this.loaded) this.refreshContent();
 		};
 
-		this.games = await getGames({ onSuccess: receive, onError: receive });
-
-		this.addCleanup('gamesRequest', () => this.games?.unsubscribe?.());
+		this.games = await getGames({ onSuccess: receive, onError: receive, scope: this.signal });
 
 		this.loaded = true;
 		this.refreshContent();
@@ -191,7 +190,7 @@ export default class Games extends View {
 	renderError() {
 		new EmptyState({
 			appendTo: this.content,
-			message: `Could not load the library: ${requestError(this.games)}`,
+			message: `Could not load the library: ${failureReason(this.games)}`,
 			action: {
 				textContent: 'Try again',
 				onPointerPress: () => {

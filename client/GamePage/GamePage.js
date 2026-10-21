@@ -10,8 +10,9 @@ import {
 	styled,
 	Component,
 } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
-import { getGame, getGames, updateGame, gameFileUrl, requestError } from '../api';
+import { getGame, getGames, updateGame, gameFileUrl } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
 import Markdown from '../Markdown';
@@ -185,14 +186,9 @@ export default class GamePage extends View {
 		// The full library rides along for the related-games section; both fetches in parallel,
 		// first paint waits on the slower of the two instead of the sum
 		[this.game, this.games] = await Promise.all([
-			getGame(this.options.id, { onSuccess: receiveGame, onError: receiveGame }),
-			getGames({ onSuccess: receiveGames, onError: receiveGames }),
+			getGame(this.options.id, { onSuccess: receiveGame, onError: receiveGame, scope: this.signal }),
+			getGames({ onSuccess: receiveGames, onError: receiveGames, scope: this.signal }),
 		]);
-
-		this.addCleanup('gameRequests', () => {
-			this.game?.unsubscribe?.();
-			this.games?.unsubscribe?.();
-		});
 
 		this.loaded = true;
 
@@ -234,7 +230,7 @@ export default class GamePage extends View {
 			new Elem({
 				appendTo: this.content,
 				style: { margin: '24px' },
-				textContent: failed ? `Could not load this game: ${requestError(this.game)}` : 'Game not found',
+				textContent: failed ? `Could not load this game: ${failureReason(this.game)}` : 'Game not found',
 			});
 
 			if (failed) {
