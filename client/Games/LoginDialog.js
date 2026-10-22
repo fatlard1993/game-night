@@ -1,16 +1,7 @@
-import { FormDialog, Component, Elem, styled } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { FormDialog, Elem } from '@vanilla-bean/components';
 
 import { logIn } from '../api';
 import context from '../context';
-
-const ErrorNote = styled(
-	Component,
-	({ colors }) => `
-		color: ${colors.light(colors.danger)};
-		margin: 9px 0 0;
-	`,
-);
 
 // The password gates writing, never reading, so this is only reached by someone who set out to
 // edit something. Wrong guesses are slowed by the server, not here.
@@ -44,12 +35,7 @@ export default class LoginDialog extends FormDialog {
 	async logIn(password) {
 		const result = await logIn({ body: { password } });
 
-		if (result.status !== 'success') {
-			this._error ||= new ErrorNote({ appendTo: this.body });
-			this._error.options.textContent = `Login failed: ${failureReason(result)}`;
-
-			return false;
-		}
+		if (result.status !== 'success') return result;
 
 		context.admin = true;
 

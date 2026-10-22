@@ -3,8 +3,10 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import * as api from '../../api';
 
 const deleteGame = mock();
+const updateGame = mock();
+const uploadGameFile = mock();
 
-mock.module('../../api', () => ({ ...api, deleteGame, getGames: mock(async () => ({})) }));
+mock.module('../../api', () => ({ ...api, deleteGame, updateGame, uploadGameFile, getGames: mock(async () => ({})) }));
 
 const { default: GameDialog } = await import('./GameDialog');
 
@@ -65,7 +67,7 @@ describe('GameDialog delete', () => {
 		expect(await deleting).toBe(false);
 		expect(deleteGame).toHaveBeenCalledWith('g1');
 		expect(dialog.elem.open).toBe(true);
-		expect(dialog.body.elem.textContent).toContain('Delete failed: disk full');
+		expect(dialog.elem.querySelector('.failure').textContent).toBe('disk full');
 		expect(onDeleted).not.toHaveBeenCalled();
 	});
 
@@ -79,5 +81,36 @@ describe('GameDialog delete', () => {
 		expect(await deleting).toBe(true);
 		expect(dialog.elem.open).toBe(false);
 		expect(onDeleted).toHaveBeenCalled();
+	});
+});
+
+describe('GameDialog save', () => {
+	afterEach(() => {
+		for (const elem of document.querySelectorAll('dialog')) elem.remove();
+	});
+
+	test('an upload failing after the game saved says so beside the reason', async () => {
+		updateGame.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: { id: 'g1' } });
+		uploadGameFile.mockResolvedValue({ status: 'error', response: { ok: false, status: 413 }, body: { error: 'too big' } });
+
+		const dialog = new GameDialog({ game: { id: 'g1', name: 'Chess' } });
+
+		await opened();
+
+		dialog.form.getPendingFiles = () => [{ name: 'board.png' }];
+
+		const { reportError } = globalThis;
+
+		globalThis.reportError = () => {};
+
+		const saved = await dialog.save();
+
+		globalThis.reportError = reportError;
+
+		expect(saved).toBe(false);
+		expect(dialog.elem.open).toBe(true);
+		expect(dialog.elem.querySelector('.failure').textContent).toBe(
+			'"board.png" upload failed (the game itself saved): too big',
+		);
 	});
 });

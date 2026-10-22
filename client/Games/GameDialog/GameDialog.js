@@ -1,4 +1,4 @@
-import { FormDialog, Component, styled } from '@vanilla-bean/components';
+import { FormDialog } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
 import { createGame, updateGame, deleteGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
@@ -6,14 +6,6 @@ import { navigate } from '../../navigate';
 import { parseLinks, otherGameNames, asNumber } from '../gameModel';
 
 import GameForm from './GameForm';
-
-const ErrorNote = styled(
-	Component,
-	({ colors }) => `
-		color: ${colors.light(colors.danger)};
-		margin: 9px 0 0;
-	`,
-);
 
 export default class GameDialog extends FormDialog {
 	static schema = {
@@ -68,8 +60,8 @@ export default class GameDialog extends FormDialog {
 		this.addCleanup('gamesRequest', () => this._gamesRequest?.unsubscribe?.());
 	}
 
-	// hypertether doesn't throw on HTTP errors; every mutation gets its ok checked and a failure
-	// keeps the dialog open with the reason instead of closing as if it worked
+	// hypertether doesn't throw on HTTP errors; every mutation gets its ok checked, and a failed one is handed
+	// back so FormDialog keeps the dialog open with the reason instead of closing as if it worked
 	async _saveGame() {
 		const { links, playersMin, playersMax, playTimeMin, playTimeMax, ...rest } = this.form.options.data;
 
@@ -92,7 +84,7 @@ export default class GameDialog extends FormDialog {
 
 		const saved = isEdit ? await updateGame(id, { body }) : await createGame({ body });
 
-		if (!saved.response?.ok) return this._showError('Save failed', saved);
+		if (!saved.response?.ok) return saved;
 
 		if (!isEdit) {
 			id = saved.body.id;
@@ -105,7 +97,7 @@ export default class GameDialog extends FormDialog {
 			const uploaded = await uploadGameFile(id, file);
 
 			if (!uploaded.response?.ok)
-				return this._showError(`"${file.name}" upload failed (the game itself saved)`, uploaded);
+				return this._failed(`"${file.name}" upload failed (the game itself saved)`, uploaded);
 
 			this.form.markUploaded(file);
 		}
@@ -113,7 +105,7 @@ export default class GameDialog extends FormDialog {
 		for (const fileId of [...this.form.removedFileIds]) {
 			const removed = await deleteGameFile(id, fileId);
 
-			if (!removed.response?.ok) return this._showError('File delete failed (the game itself saved)', removed);
+			if (!removed.response?.ok) return this._failed('File delete failed (the game itself saved)', removed);
 
 			this.form.removedFileIds.delete(fileId);
 		}
@@ -127,17 +119,15 @@ export default class GameDialog extends FormDialog {
 	async _deleteGame() {
 		const result = await deleteGame(this.options.game.id);
 
-		if (!result.response?.ok) return this._showError('Delete failed', result);
+		if (!result.response?.ok) return result;
 
 		this.options.onDeleted?.();
 
 		return true;
 	}
 
-	_showError(message, result) {
-		this._error ||= new ErrorNote({ appendTo: this.body });
-		this._error.options.textContent = `${message}: ${failureReason(result)}`;
-
-		return false;
+	// A file failing after the game saved needs saying, past the bare reason FormDialog would show
+	_failed(message, result) {
+		throw new Error(`${message}: ${failureReason(result)}`);
 	}
 }
