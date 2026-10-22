@@ -1,5 +1,5 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { View, Content, ContextMenu, EmptyState, styled } from '@vanilla-bean/components';
+import { View, Component, Content, ContextMenu, EmptyState, styled } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
 import { getGames } from '../api';
@@ -15,14 +15,17 @@ import { gameHaystack, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, 
 // Tolerant fuzzy: allows insertions, substitutions, transpositions, and deletions within matches
 const fuzzy = new uFuzzy({ intraMode: 1, intraIns: 5, intraSub: 1, intraTrn: 1, intraDel: 1 });
 
-const CardGrid = styled.Component`
-	display: grid;
-	/* Columns flex to fill the row: ~200px+ tracks on wide screens, two-up on
-	   phones (the 50% term undercuts 200px there, minus half the gap) */
-	grid-template-columns: repeat(auto-fill, minmax(min(200px, calc(50% - 6px)), 1fr));
-	gap: 12px;
-	padding: 0 12px 12px;
-`;
+const CardGrid = styled(
+	Component,
+	({ space }) => `
+		display: grid;
+		/* Columns flex to fill the row: ~200px+ tracks on wide screens, two-up on
+		   phones (the 50% term undercuts 200px there, minus half the gap) */
+		grid-template-columns: repeat(auto-fill, minmax(min(200px, calc(50% - ${space.sm})), 1fr));
+		gap: ${space.md};
+		padding: 0 ${space.md} ${space.md};
+	`,
+);
 
 export default class Games extends View {
 	constructor(options) {

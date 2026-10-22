@@ -62,12 +62,15 @@ const Cover = styled(
 	`,
 );
 
-const Body = styled.Component`
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	padding: 9px 12px 12px;
-`;
+const Body = styled(
+	Component,
+	({ space }) => `
+		display: flex;
+		flex-direction: column;
+		gap: ${space.xs};
+		padding: ${space.sm} ${space.md} ${space.md};
+	`,
+);
 
 const Name = styled.Component`
 	font-weight: bold;

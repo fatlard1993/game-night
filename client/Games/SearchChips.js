@@ -12,7 +12,7 @@ const Container = styled(
 		gap: ${space.xs};
 		flex: 3;
 		min-width: 200px;
-		padding: 2px 6px;
+		padding: 2px ${space.sm};
 		cursor: text;
 
 		/* The field look is the container's; the input inside it is bare, focused or not */
@@ -36,7 +36,7 @@ const Chip = styled(
 		display: inline-flex;
 		align-items: center;
 		gap: ${space.xs};
-		padding: 0 2px 0 8px;
+		padding: 0 2px 0 ${space.sm};
 		font-size: 0.85em;
 		border: 1px solid ${colors.light(colors.blue)};
 		border-radius: ${radius.pill};
