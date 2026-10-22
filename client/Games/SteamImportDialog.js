@@ -30,7 +30,7 @@ export default class SteamImportDialog extends Dialog {
 			new Elem({ tag: 'span', textContent: 'Needs a free ' }),
 			new Link({
 				href: 'https://steamcommunity.com/dev/apikey',
-				attributes: { target: '_blank' },
+				target: '_blank',
 				textContent: 'Steam Web API key',
 			}),
 			new Elem({

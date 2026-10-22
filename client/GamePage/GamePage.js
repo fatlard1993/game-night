@@ -281,7 +281,7 @@ export default class GamePage extends View {
 					fileId =>
 						new Link({
 							href: gameFileUrl(game.id, fileId),
-							attributes: { target: '_blank' },
+							target: '_blank',
 							append: new Elem({
 								tag: 'img',
 								src: gameFileUrl(game.id, fileId),
@@ -306,7 +306,7 @@ export default class GamePage extends View {
 								style: { margin: '0 0 3px' },
 								// Link urls are stored as typed; the href is an anchor property assignment,
 								// so an executable scheme would run on click without this
-								append: new Link({ href: safeUrl(url), attributes: { target: '_blank' }, textContent: label || url }),
+								append: new Link({ href: safeUrl(url), target: '_blank', textContent: label || url }),
 							}),
 					),
 				],
@@ -343,7 +343,7 @@ export default class GamePage extends View {
 								style: { margin: '0 0 3px' },
 								append: new Link({
 									href: gameFileUrl(game.id, fileId),
-									attributes: { target: '_blank' },
+									target: '_blank',
 									textContent: game.files[fileId].name,
 								}),
 							}),
