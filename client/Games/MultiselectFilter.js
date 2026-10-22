@@ -1,9 +1,9 @@
-import { styled, Component, Elem, Input, Button, capitalize, isDescendantOf } from '@vanilla-bean/components';
+import { styled, Component, Elem, Icon, Input, Button, capitalize, isDescendantOf } from '@vanilla-bean/components';
 
 // A multiselect OR filter: a button that opens a searchable checklist popover over a dynamic
 // {value: count} vocabulary (counts shown, values below minCount hidden). Owns its own button.
 export default class MultiselectFilter extends styled.Popover(
-	({ colors }) => `
+	({ colors, space }) => `
 		display: flex;
 		flex-direction: column;
 		padding: 0;
@@ -46,24 +46,24 @@ export default class MultiselectFilter extends styled.Popover(
 		& .filterRow {
 			display: flex;
 			align-items: center;
-			gap: 8px;
-			padding: 5px 10px;
+			gap: ${space.sm};
+			padding: ${space.sm} ${space.md};
 			cursor: pointer;
 			white-space: nowrap;
 
 			&:hover { background-color: ${colors.alpha(colors.white, 0.08)}; }
 
-			&.selected { background-color: ${colors.alpha(colors.blue, 0.25)}; }
+			&.selected { background-color: ${colors.alpha(colors.selected, 0.25)}; }
 
 			& .check {
 				width: 14px;
 				flex-shrink: 0;
-				color: ${colors.lighter(colors.blue)};
+				color: ${colors.light(colors.selected)};
 			}
 
 			& .count {
 				margin-left: auto;
-				padding-left: 12px;
+				padding-left: ${space.md};
 				font-size: 0.8em;
 				color: ${colors.muted};
 			}
@@ -72,8 +72,8 @@ export default class MultiselectFilter extends styled.Popover(
 		& .filterFooter {
 			display: flex;
 			justify-content: space-between;
-			gap: 6px;
-			padding: 6px;
+			gap: ${space.sm};
+			padding: ${space.sm};
 			border-top: 1px solid ${colors.border};
 			flex-shrink: 0;
 		}
@@ -213,7 +213,7 @@ export default class MultiselectFilter extends styled.Popover(
 				addClass: selected ? ['filterRow', 'selected'] : ['filterRow'],
 				attributes: { 'data-value': value },
 				append: [
-					new Elem({ tag: 'span', addClass: 'check', textContent: selected ? '✓' : '' }),
+					new Icon({ addClass: 'check', icon: selected ? 'check' : undefined }),
 					new Elem({ tag: 'span', textContent: value }),
 					...(this.options.showCounts && count != null
 						? [new Elem({ tag: 'span', addClass: 'count', textContent: String(count) })]
