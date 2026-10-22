@@ -69,8 +69,10 @@ const StyledMarkdown = styled(
 			border-left: 4px solid ${colors.alpha(colors.blue, 0.5)};
 			background-color: ${colors.alpha(colors.white, 0.03)};
 
-			&.WARNING, &.CAUTION { border-color: ${colors.alpha(colors.red, 0.6)}; }
-			&.NOTE, &.TIP { border-color: ${colors.alpha(colors.green, 0.6)}; }
+			&.NOTE { border-color: ${colors.alpha(colors.info, 0.6)}; }
+			&.TIP { border-color: ${colors.alpha(colors.success, 0.6)}; }
+			&.WARNING { border-color: ${colors.alpha(colors.warning, 0.6)}; }
+			&.CAUTION { border-color: ${colors.alpha(colors.danger, 0.6)}; }
 		}
 
 		table {
