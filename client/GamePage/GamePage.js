@@ -12,6 +12,7 @@ import {
 	Toolbar,
 	styled,
 	Component,
+	theme,
 } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
@@ -41,69 +42,81 @@ const Body = styled(
 
 const Meta = styled(
 	Component,
-	({ colors }) => `
+	({ colors, space }) => `
 		color: ${colors.muted};
-		margin: 0 0 9px;
+		margin: 0 0 ${space.sm};
 	`,
 );
 
-const Section = styled.Component`
-	margin: 0 0 18px;
-`;
+const Section = styled(
+	Component,
+	({ space }) => `
+		margin: 0 0 ${space.lg};
+	`,
+);
 
-const Gallery = styled.Component`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	margin: 0 0 18px;
+const Gallery = styled(
+	Component,
+	({ radius, space }) => `
+		display: flex;
+		flex-wrap: wrap;
+		gap: ${space.sm};
+		margin: 0 0 ${space.lg};
 
-	a {
-		display: block;
-		line-height: 0;
-	}
+		a {
+			display: block;
+			line-height: 0;
+		}
 
-	img {
-		max-height: 200px;
-		max-width: 100%;
-		border-radius: 6px;
-	}
-`;
+		img {
+			max-height: 200px;
+			max-width: 100%;
+			border-radius: ${radius.md};
+		}
+	`,
+);
 
-const EditBar = styled.Component`
-	display: flex;
-	gap: 12px;
-	margin: 0 0 12px;
-`;
+const EditBar = styled(
+	Component,
+	({ space }) => `
+		display: flex;
+		gap: ${space.md};
+		margin: 0 0 ${space.md};
+	`,
+);
 
 const ErrorNote = styled(
 	Component,
-	({ colors }) => `
+	({ colors, space }) => `
 		color: ${colors.light(colors.danger)};
-		margin: 0 0 12px;
+		margin: 0 0 ${space.md};
 
 		&:empty { display: none; }
 	`,
 );
 
-const RelatedRow = styled.Component`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 9px;
-`;
+const RelatedRow = styled(
+	Component,
+	({ space }) => `
+		display: flex;
+		flex-wrap: wrap;
+		gap: ${space.sm};
+	`,
+);
 
 const RelatedCard = styled(
 	Card,
-	({ colors }) => `
+	({ colors, radius, space }) => `
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding: 4px 12px 4px 4px;
+		gap: ${space.sm};
+		padding: ${space.xs} ${space.md} ${space.xs} ${space.xs};
 
 		img, i {
 			width: 36px;
 			height: 36px;
 			object-fit: cover;
-			border-radius: 4px;
+			border-radius: ${radius.sm};
 		}
 
 		i {
@@ -303,7 +316,7 @@ export default class GamePage extends View {
 					...game.links.map(
 						({ label, url }) =>
 							new Elem({
-								style: { margin: '0 0 3px' },
+								style: { margin: `0 0 ${theme.space.xs}` },
 								// Link urls are stored as typed; the href is an anchor property assignment,
 								// so an executable scheme would run on click without this
 								append: new Link({ href: safeUrl(url), target: '_blank', textContent: label || url }),
@@ -323,7 +336,7 @@ export default class GamePage extends View {
 		if (!game.description && !game.rules) {
 			new Elem({
 				appendTo: this.body,
-				style: { margin: '12px 0', fontStyle: 'italic' },
+				style: { margin: `${theme.space.md} 0`, fontStyle: 'italic' },
 				textContent: context.admin
 					? 'No description or rules yet .. Use the Edit button to write them'
 					: 'No description or rules yet',
@@ -340,7 +353,7 @@ export default class GamePage extends View {
 					...attachmentIds.map(
 						fileId =>
 							new Elem({
-								style: { margin: '0 0 3px' },
+								style: { margin: `0 0 ${theme.space.xs}` },
 								append: new Link({
 									href: gameFileUrl(game.id, fileId),
 									target: '_blank',
