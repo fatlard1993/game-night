@@ -1,10 +1,10 @@
 import { FormDialog, Component, styled } from '@vanilla-bean/components';
+import { failureReason } from '@vanilla-bean/hypertether';
 
-import { createGame, updateGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
+import { createGame, updateGame, deleteGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
 import { parseLinks, otherGameNames, asNumber } from '../gameModel';
 
-import confirmDeleteGame from '../confirmDeleteGame';
 import GameForm from './GameForm';
 
 const ErrorNote = styled(
@@ -18,6 +18,7 @@ const ErrorNote = styled(
 export default class GameDialog extends FormDialog {
 	static schema = {
 		game: {},
+		onDeleted: {},
 		size: { default: 'large' },
 		FormComponent: { default: GameForm },
 	};
@@ -30,8 +31,13 @@ export default class GameDialog extends FormDialog {
 			data: options.game,
 			// A failed save keeps the dialog open with the reason
 			onSave: (data, dialog) => dialog._saveGame(),
-			// Deleting asks in a dialog of its own, which also keeps itself open on a failure
-			...(isEdit && { onDelete: (data, dialog) => confirmDeleteGame(dialog.options.game) }),
+			...(isEdit && {
+				confirmDelete: {
+					header: `Delete "${options.game.name}"?`,
+					body: 'This also deletes its pictures and attachments.',
+				},
+				onDelete: (data, dialog) => dialog._deleteGame(),
+			}),
 			...options,
 		};
 	}
@@ -118,11 +124,19 @@ export default class GameDialog extends FormDialog {
 		return true;
 	}
 
-	_showError(message, { response, body }) {
-		const detail = (typeof body === 'string' && body) || body?.error || `HTTP ${response?.status || '?'}`;
+	async _deleteGame() {
+		const result = await deleteGame(this.options.game.id);
 
+		if (!result.response?.ok) return this._showError('Delete failed', result);
+
+		this.options.onDeleted?.();
+
+		return true;
+	}
+
+	_showError(message, result) {
 		this._error ||= new ErrorNote({ appendTo: this.body });
-		this._error.options.textContent = `${message}: ${detail}`;
+		this._error.options.textContent = `${message}: ${failureReason(result)}`;
 
 		return false;
 	}

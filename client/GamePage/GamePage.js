@@ -239,7 +239,7 @@ export default class GamePage extends View {
 				icon: 'gear',
 				textContent: ' Details',
 				title: 'Edit metadata, tags, links & files',
-				onPointerPress: () => new GameDialog({ game }),
+				onPointerPress: () => new GameDialog({ game, onDeleted: () => navigate(context.libraryUrl) }),
 			});
 			new Button({
 				appendTo: this.header,
