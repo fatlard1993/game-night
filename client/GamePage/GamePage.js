@@ -435,7 +435,7 @@ export default class GamePage extends View {
 						// A failed save keeps the editors (and their text) up instead of
 						// silently discarding the edit
 						if (!result.response?.ok) {
-							this.saveError.options.textContent = `Save failed: ${result.body?.error || `HTTP ${result.response?.status || '?'}`}`;
+							this.saveError.options.textContent = `Save failed: ${failureReason(result)}`;
 
 							return;
 						}
