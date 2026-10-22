@@ -1,4 +1,4 @@
-import { FormDialog, Elem } from '@vanilla-bean/components';
+import { FormDialog, Elem, theme } from '@vanilla-bean/components';
 
 import { logIn } from '../api';
 import context from '../context';
@@ -26,7 +26,7 @@ export default class LoginDialog extends FormDialog {
 
 		this.form.elem.before(
 			new Elem({
-				style: { margin: '0 0 9px', fontSize: '0.9em' },
+				style: { margin: `0 0 ${theme.space.sm}`, fontSize: '0.9em' },
 				textContent: 'Adding and editing games needs the admin password.',
 			}).elem,
 		);

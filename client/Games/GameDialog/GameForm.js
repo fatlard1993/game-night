@@ -1,4 +1,4 @@
-import { Form, Select, Input, Label, Button, Elem, TagList, readFile, styled } from '@vanilla-bean/components';
+import { Form, Select, Input, Label, Button, Elem, TagList, readFile, styled, theme } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../../api';
 import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../gameModel';
@@ -7,11 +7,11 @@ import RelatedGamesInput from './RelatedGamesInput';
 
 const FileRow = styled(
 	Elem,
-	({ colors }) => `
+	({ colors, radius, space }) => `
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		margin: 3px 0;
+		gap: ${space.sm};
+		margin: ${space.xs} 0;
 
 		&.markedForRemoval span {
 			text-decoration: line-through;
@@ -22,7 +22,7 @@ const FileRow = styled(
 			width: 24px;
 			height: 24px;
 			object-fit: cover;
-			border-radius: 3px;
+			border-radius: ${radius.sm};
 		}
 	`,
 );
@@ -69,7 +69,7 @@ export default class GameForm extends Form {
 				{ key: 'name', validations: [[/.+/, 'Required']] },
 				{
 					type: 'group',
-					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' },
+					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.space.sm },
 					inputs: [
 						{ key: 'setting', InputComponent: Select, options: SETTINGS },
 						{
@@ -81,7 +81,7 @@ export default class GameForm extends Form {
 				},
 				{
 					type: 'group',
-					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' },
+					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.space.sm },
 					inputs: [
 						{ key: 'playersMin', label: 'Min Players', type: 'number', min: 1 },
 						{ key: 'playersMax', label: 'Max Players', type: 'number', min: 1 },
@@ -89,7 +89,7 @@ export default class GameForm extends Form {
 				},
 				{
 					type: 'group',
-					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' },
+					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.space.sm },
 					inputs: [
 						{ key: 'playTimeMin', label: 'Min Play Time (minutes)', type: 'number', min: 1 },
 						{ key: 'playTimeMax', label: 'Max Play Time (minutes)', type: 'number', min: 1 },

@@ -1,4 +1,4 @@
-import { Dialog, Form, Elem, Link } from '@vanilla-bean/components';
+import { Dialog, Form, Elem, Link, theme } from '@vanilla-bean/components';
 import { failureReason } from '@vanilla-bean/hypertether';
 
 import { getSteamSettings, importSteamLibrary } from '../api';
@@ -25,7 +25,7 @@ export default class SteamImportDialog extends Dialog {
 		this.intro = new Elem(
 			{
 				appendTo: this._body,
-				style: { margin: '0 0 9px', fontSize: '0.9em' },
+				style: { margin: `0 0 ${theme.space.sm}`, fontSize: '0.9em' },
 			},
 			new Elem({ tag: 'span', textContent: 'Needs a free ' }),
 			new Link({
@@ -42,7 +42,7 @@ export default class SteamImportDialog extends Dialog {
 
 		this.status = new Elem({
 			appendTo: this._body,
-			style: { margin: '0 0 9px', fontStyle: 'italic', display: 'none' },
+			style: { margin: `0 0 ${theme.space.sm}`, fontStyle: 'italic', display: 'none' },
 		});
 
 		this.form = new Form({
