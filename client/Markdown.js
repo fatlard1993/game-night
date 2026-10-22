@@ -26,26 +26,26 @@ marked.use({
 
 const StyledMarkdown = styled(
 	Component,
-	({ colors }) => `
+	({ colors, radius, space }) => `
 		line-height: 1.5;
 		overflow-wrap: break-word;
 
 		h1, h2 {
 			border-bottom: 1px solid ${colors.border};
-			padding-bottom: 3px;
+			padding-bottom: ${space.xs};
 		}
 
 		ul, ol {
-			padding-left: 24px;
-			margin: 6px 0;
+			padding-left: ${space.xl};
+			margin: ${space.sm} 0;
 		}
 
 		li {
-			margin: 3px 0;
+			margin: ${space.xs} 0;
 		}
 
 		p {
-			margin: 6px 0 12px;
+			margin: ${space.sm} 0 ${space.md};
 		}
 
 		a {
@@ -54,18 +54,18 @@ const StyledMarkdown = styled(
 
 		img {
 			max-width: 100%;
-			border-radius: 6px;
+			border-radius: ${radius.md};
 		}
 
 		code:not([class*='language-']) {
 			background-color: ${colors.alpha(colors.black, 0.5)};
-			padding: 1px 5px;
-			border-radius: 3px;
+			padding: 1px ${space.sm};
+			border-radius: ${radius.sm};
 		}
 
 		blockquote {
-			margin: 6px 0;
-			padding: 3px 12px;
+			margin: ${space.sm} 0;
+			padding: ${space.xs} ${space.md};
 			border-left: 4px solid ${colors.alpha(colors.blue, 0.5)};
 			background-color: ${colors.alpha(colors.white, 0.03)};
 
@@ -77,11 +77,11 @@ const StyledMarkdown = styled(
 
 		table {
 			border-collapse: collapse;
-			margin: 6px 0;
+			margin: ${space.sm} 0;
 
 			th, td {
 				border: 1px solid ${colors.border};
-				padding: 4px 9px;
+				padding: ${space.xs} ${space.md};
 			}
 
 			th {
@@ -92,7 +92,7 @@ const StyledMarkdown = styled(
 		hr {
 			border: none;
 			border-top: 1px solid ${colors.border};
-			margin: 12px 0;
+			margin: ${space.md} 0;
 		}
 	`,
 );

@@ -1,13 +1,16 @@
-import { Input, SectionLabel, styled, debounce } from '@vanilla-bean/components';
+import { Component, Input, SectionLabel, styled, debounce } from '@vanilla-bean/components';
 
 import Markdown from '../Markdown';
 
-const Container = styled.Component`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-	margin: 0 0 12px;
-`;
+const Container = styled(
+	Component,
+	({ space }) => `
+		display: flex;
+		flex-wrap: wrap;
+		gap: ${space.md};
+		margin: 0 0 ${space.md};
+	`,
+);
 
 const Pane = styled.Component`
 	flex: 1;
@@ -30,13 +33,13 @@ const Editor = styled(
 
 const Preview = styled(
 	Markdown,
-	({ colors }) => `
+	({ colors, radius, space }) => `
 		flex: 1;
 		min-height: 240px;
 		overflow: auto;
-		padding: 9px 12px;
+		padding: ${space.sm} ${space.md};
 		border: 1px dashed ${colors.border};
-		border-radius: 6px;
+		border-radius: ${radius.md};
 	`,
 );
 
