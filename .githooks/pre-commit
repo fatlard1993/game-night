@@ -1,2 +1,0 @@
-#!/usr/bin/env sh
-sh node_modules/@vanilla-bean/components/githooks/pre-commit || exit 1
