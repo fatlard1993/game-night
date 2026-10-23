@@ -89,7 +89,7 @@ const ErrorNote = styled(
 	Component,
 	({ colors, space }) => `
 		color: ${colors.light(colors.danger)};
-		margin: 0 0 ${space.md};
+		margin: 0 0 ${space.sm};
 
 		&:empty { display: none; }
 	`,
@@ -435,12 +435,17 @@ export default class GamePage extends View {
 		// replaceCleanup: renderContent runs again on every background refetch while editing
 		this.replaceCleanup('unsavedGuard', () => window.removeEventListener('beforeunload', warn));
 
+		// Just above the buttons it answers, as a dialog's failed save sits
+		this.saveError = new ErrorNote({ appendTo: this.body, attributes: { role: 'alert' } });
+
 		new EditBar({
 			appendTo: this.body,
 			append: [
 				new Button({
 					textContent: 'Save',
 					onPointerPress: async () => {
+						this.saveError.options.textContent = '';
+
 						const result = await updateGame(game.id, {
 							body: { description: this.descriptionEditor.value, rules: this.rulesEditor.value },
 						});
@@ -486,7 +491,5 @@ export default class GamePage extends View {
 				}),
 			],
 		});
-
-		this.saveError = new ErrorNote({ appendTo: this.body });
 	}
 }
