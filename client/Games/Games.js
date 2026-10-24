@@ -1,6 +1,5 @@
 import uFuzzy from '@leeoniya/ufuzzy';
-import { View, Component, Content, ContextMenu, EmptyState, styled } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { View, Component, Content, ContextMenu, EmptyState, styled, failureReason } from '@vanilla-bean/components';
 
 import { getGames } from '../api';
 import { navigate } from '../navigate';
@@ -222,6 +221,6 @@ export default class Games extends View {
 			},
 		];
 
-		this.contextMenu.show({ x: event.clientX, y: event.clientY });
+		this.contextMenu.open({ x: event.clientX, y: event.clientY });
 	}
 }

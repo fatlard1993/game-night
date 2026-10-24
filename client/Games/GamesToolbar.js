@@ -159,7 +159,7 @@ export default class GamesToolbar extends styled(
 					{ textContent: 'Import Steam Library', onPointerPress: () => new SteamImportDialog() },
 				];
 
-				this.addMenu.show({ x: event.clientX, y: event.clientY });
+				this.addMenu.open({ x: event.clientX, y: event.clientY });
 			},
 		});
 

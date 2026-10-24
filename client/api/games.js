@@ -1,4 +1,4 @@
-import { POST, DELETE, resource } from '@vanilla-bean/hypertether';
+import { POST, DELETE, resource } from '@vanilla-bean/components';
 
 const games = resource('/api/games');
 

@@ -115,7 +115,7 @@ export default class MultiselectFilter extends styled.Popover(
 
 				const rect = this.button.elem.getBoundingClientRect();
 
-				this.show({ x: rect.left + rect.width / 2, y: rect.bottom + 6 });
+				this.open({ x: rect.left + rect.width / 2, y: rect.bottom + 6 });
 			},
 		});
 
@@ -146,11 +146,11 @@ export default class MultiselectFilter extends styled.Popover(
 		this.footer = new Elem(
 			{ appendTo: this, addClass: 'filterFooter' },
 			new Button({ textContent: 'Clear', variant: 'flat', onPointerPress: () => this.clear() }),
-			new Button({ textContent: 'Done', onPointerPress: () => this.hide() }),
+			new Button({ textContent: 'Done', onPointerPress: () => this.close() }),
 		);
 
 		const keyBinds = ({ key }) => {
-			if (this.isOpen && key === 'Escape') this.hide();
+			if (this.isOpen && key === 'Escape') this.close();
 		};
 		const pointerBinds = ({ target }) => {
 			if (!this.isOpen || !target.isConnected) return;
@@ -158,7 +158,7 @@ export default class MultiselectFilter extends styled.Popover(
 			// The button toggles the popover itself, don't also close on its press
 			if (target === this.button.elem || isDescendantOf(target, this.button.elem)) return;
 
-			this.hide();
+			this.close();
 		};
 
 		document.addEventListener('keyup', keyBinds);
@@ -253,10 +253,10 @@ export default class MultiselectFilter extends styled.Popover(
 		this._emit();
 	}
 
-	show(options) {
+	open(options) {
 		this._renderList();
 
-		super.show(options);
+		super.open(options);
 
 		if (this.search) requestAnimationFrame(() => this.search.elem.focus());
 	}

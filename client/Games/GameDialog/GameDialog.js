@@ -1,5 +1,4 @@
-import { FormDialog } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { FormDialog, failureReason } from '@vanilla-bean/components';
 
 import { createGame, updateGame, deleteGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
@@ -96,8 +95,7 @@ export default class GameDialog extends FormDialog {
 		for (const file of this.form.getPendingFiles()) {
 			const uploaded = await uploadGameFile(id, file);
 
-			if (!uploaded.response?.ok)
-				return this._failed(`"${file.name}" upload failed (the game itself saved)`, uploaded);
+			if (!uploaded.response?.ok) return this._failed(`"${file.name}" upload failed (the game itself saved)`, uploaded);
 
 			this.form.markUploaded(file);
 		}

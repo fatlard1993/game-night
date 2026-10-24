@@ -150,7 +150,7 @@ export default class GameCard extends CoverCard {
 			this.tagList = new TagList({
 				appendTo: this.body,
 				readOnly: true,
-				tags: game.tags,
+				value: game.tags,
 				onClick: event => {
 					const tag = swallowTagEvent(event);
 

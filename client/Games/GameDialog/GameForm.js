@@ -66,7 +66,7 @@ export default class GameForm extends Form {
 
 		this.setOptions({
 			inputs: [
-				{ key: 'name', validations: [[/.+/, 'Required']] },
+				{ key: 'name', validate: value => (value ? null : 'Required') },
 				{
 					type: 'group',
 					style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: theme.space.sm },
@@ -105,11 +105,11 @@ export default class GameForm extends Form {
 
 		super.build();
 
-		this.tagList = new TagList({ tags: this.options.existingTags });
+		this.tagList = new TagList({ value: this.options.existingTags });
 
 		this.append(new Label({ label: 'Tags' }, this.tagList));
 
-		this.relatedList = new RelatedGamesInput({ tags: this.options.existingRelated });
+		this.relatedList = new RelatedGamesInput({ value: this.options.existingRelated });
 
 		this.append(new Label({ label: 'Related Games' }, this.relatedList));
 
@@ -123,11 +123,11 @@ export default class GameForm extends Form {
 	}
 
 	getTags() {
-		return Array.from(this.tagList.elem.querySelectorAll('li[data-value]')).map(el => el.dataset.value);
+		return [...this.tagList.options.value];
 	}
 
 	getRelated() {
-		return Array.from(this.relatedList.elem.querySelectorAll('li[data-value]')).map(el => el.dataset.value);
+		return [...this.relatedList.options.value];
 	}
 
 	getPendingFiles() {

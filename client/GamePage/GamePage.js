@@ -13,8 +13,8 @@ import {
 	styled,
 	Component,
 	theme,
+	failureReason,
 } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
 
 import { getGame, getGames, updateGame, gameFileUrl } from '../api';
 import { navigate } from '../navigate';
@@ -282,7 +282,7 @@ export default class GamePage extends View {
 		if (meta) new Meta({ appendTo: this.body, textContent: meta });
 
 		if (game.tags?.length > 0) {
-			new Section({ appendTo: this.body, append: new TagList({ readOnly: true, tags: game.tags }) });
+			new Section({ appendTo: this.body, append: new TagList({ readOnly: true, value: game.tags }) });
 		}
 
 		const imageIds = gameImageIds(game);
@@ -475,7 +475,7 @@ export default class GamePage extends View {
 						if (
 							this._editsPending() &&
 							!(await Dialog.confirm({
-								variant: 'warning',
+								intent: 'warning',
 								header: 'Discard changes?',
 								body: 'Your unsaved edits to the description and rules will be lost.',
 								confirmLabel: 'Discard',

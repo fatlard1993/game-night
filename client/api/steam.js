@@ -1,4 +1,4 @@
-import { GET, POST } from '@vanilla-bean/hypertether';
+import { GET, POST } from '@vanilla-bean/components';
 
 export const getSteamSettings = async options =>
 	await GET('/api/steam/settings', { apiId: 'steamSettings', ...options });

@@ -1,5 +1,4 @@
-import { Dialog } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { Dialog, failureReason } from '@vanilla-bean/components';
 
 import { deleteGame } from '../api';
 
@@ -21,7 +20,7 @@ export default function confirmDeleteGame(game, onDeleted) {
 
 				// A failed delete keeps the dialog open instead of pretending it worked
 				if (!result.response?.ok) {
-					dialog.options.variant = 'error';
+					dialog.options.intent = 'danger';
 					dialog.options.body = `Delete failed: ${failureReason(result)}`;
 
 					return;

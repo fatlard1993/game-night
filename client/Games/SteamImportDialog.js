@@ -1,5 +1,4 @@
-import { Dialog, Form, Elem, Link, theme } from '@vanilla-bean/components';
-import { failureReason } from '@vanilla-bean/hypertether';
+import { Dialog, Form, Elem, Link, theme, failureReason } from '@vanilla-bean/components';
 
 import { getSteamSettings, importSteamLibrary } from '../api';
 

@@ -1,4 +1,4 @@
-import { GET, POST, DELETE } from '@vanilla-bean/hypertether';
+import { GET, POST, DELETE } from '@vanilla-bean/components';
 
 export const getSession = async options => await GET('/api/session', { apiId: 'session', ...options });
 
