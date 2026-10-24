@@ -59,4 +59,4 @@ The service comes from the component library's `vbc-service`. On macOS its agent
 - [Bun](https://bun.sh) server on the component library's app kit (`serve`, `requestMatch`, `crudRoutes`, `handleExit`, `devConsole`)
 - [lowdb](https://github.com/typicode/lowdb) JSON database, through the app kit's `openDatabase` and `createStore`
 - [@vanilla-bean/components](https://www.npmjs.com/package/@vanilla-bean/components) UI
-- [@vanilla-bean/hypertether](https://www.npmjs.com/package/@vanilla-bean/hypertether) client data layer (the games are a `resource()`; `failureReason()` words a failed load)
+- [@vanilla-bean/hypertether](https://www.npmjs.com/package/@vanilla-bean/hypertether) client data layer, re-exported by the component library (the games are a `resource()`; `failureReason()` words a failed load)
