@@ -122,6 +122,23 @@ export const gameImageIds = game =>
 export const gameAttachmentIds = game =>
 	Object.keys(game.files || {}).filter(fileId => !game.files[fileId].type?.startsWith('image/'));
 
+// Fallback cover icon for a coverless game. The medium tags come first: a card game played with nothing else
+// is still a card game.
+const COVER_ICONS = {
+	'board-game': 'chess-board',
+	'card-game': 'heart',
+	'dice-game': 'dice',
+	'video-game': 'gamepad',
+	'paper-and-pen': 'pencil',
+	'no-equipment': 'people-group',
+};
+
+export const coverIcon = game => {
+	const tags = game.tags || [];
+
+	return COVER_ICONS[Object.keys(COVER_ICONS).find(tag => tags.includes(tag))] || 'puzzle-piece';
+};
+
 // Everything worth fuzzy-matching about a game, flattened into one string
 export const gameHaystack = game =>
 	[game.name, game.description, game.setting, game.complexity, ...(Array.isArray(game.tags) ? game.tags : [])]

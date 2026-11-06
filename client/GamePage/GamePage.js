@@ -6,6 +6,7 @@ import {
 	Content,
 	Dialog,
 	EmptyState,
+	Icon,
 	Link,
 	SectionLabel,
 	TagList,
@@ -24,7 +25,7 @@ import { safeUrl } from '../safeUrl';
 import GameDialog from '../Games/GameDialog/GameDialog';
 import LoginDialog from '../Games/LoginDialog';
 import confirmDeleteGame from '../Games/confirmDeleteGame';
-import { gameMetaLabel, gameImageIds, gameAttachmentIds, relatedGames } from '../Games/gameModel';
+import { coverIcon, gameMetaLabel, gameImageIds, gameAttachmentIds, relatedGames } from '../Games/gameModel';
 import MarkdownEditor from './MarkdownEditor';
 
 // click isn't in the default event set; the back link wants full click semantics
@@ -112,14 +113,14 @@ const RelatedCard = styled(
 		gap: ${space.sm};
 		padding: ${space.xs} ${space.md} ${space.xs} ${space.xs};
 
-		img, i {
+		img, .icon {
 			width: 36px;
 			height: 36px;
 			object-fit: cover;
 			border-radius: ${radius.sm};
 		}
 
-		i {
+		.icon {
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -386,7 +387,7 @@ export default class GamePage extends View {
 							append: [
 								coverId
 									? new Elem({ tag: 'img', src: gameFileUrl(other.id, coverId), alt: other.name, loading: 'lazy' })
-									: new Elem({ tag: 'i', addClass: ['fa-support', 'fa-dice'] }),
+									: new Icon({ icon: coverIcon(other) }),
 								new Elem({ tag: 'span', textContent: other.name }),
 							],
 						});

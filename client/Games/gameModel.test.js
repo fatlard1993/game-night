@@ -5,6 +5,7 @@ import { MAX_UPLOAD_BYTES as SERVER_MAX_UPLOAD_BYTES } from '../../server/router
 import {
 	MAX_UPLOAD_BYTES,
 	asNumber,
+	coverIcon,
 	filtersFromUrl,
 	filtersToQuery,
 	gameMatchesFilters,
@@ -97,6 +98,15 @@ describe('orderedRange', () => {
 		expect(orderedRange(4, 4)).toEqual([4, 4]);
 		expect(orderedRange(undefined, 2)).toEqual([undefined, 2]);
 		expect(orderedRange(10, undefined)).toEqual([10, undefined]);
+	});
+});
+
+describe('coverIcon', () => {
+	test('the medium tag picks the icon, however the tags are ordered', () => {
+		expect(coverIcon({ tags: ['party', 'no-equipment', 'card-game'] })).toBe('heart');
+		expect(coverIcon({ tags: ['paper-and-pen', 'words'] })).toBe('pencil');
+		expect(coverIcon({ tags: ['party'] })).toBe('puzzle-piece');
+		expect(coverIcon({})).toBe('puzzle-piece');
 	});
 });
 

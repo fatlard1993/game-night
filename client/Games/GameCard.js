@@ -1,7 +1,7 @@
 import { Card, Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../api';
-import { gameImageIds, gameMetaLabel } from './gameModel';
+import { coverIcon, gameImageIds, gameMetaLabel } from './gameModel';
 
 // The cover runs to the card's edges; only the body below it is padded
 const CoverCard = styled(
@@ -55,7 +55,7 @@ const Cover = styled(
 			object-fit: cover;
 		}
 
-		i {
+		.icon {
 			font-size: 3em;
 			color: ${colors.alpha(colors.gray, 0.8)};
 		}
@@ -86,22 +86,6 @@ const Meta = styled(
 		color: ${colors.muted};
 	`,
 );
-
-// Fallback icon for coverless games, picked from the medium tag
-const mediumIcons = {
-	'board-game': 'chess-board',
-	'card-game': 'heart',
-	'dice-game': 'dice',
-	'video-game': 'gamepad',
-};
-
-const coverIcon = game => {
-	for (const tag of game.tags || []) {
-		if (mediumIcons[tag]) return mediumIcons[tag];
-	}
-
-	return 'puzzle-piece';
-};
 
 // Tag presses add a search chip instead of opening the game; swallow the click
 // the card's own onPointerPress would otherwise receive. Returns the pressed tag.
