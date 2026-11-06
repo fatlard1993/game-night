@@ -20,6 +20,7 @@ module.exports = {
 		'canastas',
 		'cee',
 		'cmd',
+		'contenteditable',
 		'coverless',
 		'darwin',
 		'datalist',
