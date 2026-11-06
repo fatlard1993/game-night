@@ -1,7 +1,7 @@
 import { Form, Select, Input, Label, Button, Elem, TagList, readFile, styled, theme } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../../api';
-import { COMPLEXITY_LEVELS, SETTINGS, serializeLinks } from '../gameModel';
+import { COMPLEXITY_LEVELS, MAX_UPLOAD_BYTES, SETTINGS, serializeLinks } from '../gameModel';
 
 import RelatedGamesInput from './RelatedGamesInput';
 
@@ -183,6 +183,16 @@ export default class GameForm extends Form {
 	}
 
 	async _addPendingFile(file) {
+		// Said here, before the file is read and sent whole to be refused
+		if (file.size > MAX_UPLOAD_BYTES) {
+			this._addFileRow({
+				name: `${file.name} is too large (${Math.round(MAX_UPLOAD_BYTES / 1_000_000)} MB at most)`,
+				onRemove: row => row.elem.remove(),
+			});
+
+			return;
+		}
+
 		const dataUri = await readFile(file, 'dataURL');
 		const pending = { name: file.name, dataUri };
 

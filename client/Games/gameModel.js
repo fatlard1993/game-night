@@ -7,6 +7,10 @@ export const COMPLEXITY_LEVELS = ['Light', 'Medium', 'Heavy'];
 // and movement; Anywhere = needs nothing but people.
 export const SETTINGS = ['Table', 'Couch', 'Outside', 'Anywhere'];
 
+// Pinned equal to the server's limit by test: the form refuses a file this big before reading it, instead of
+// sending it whole to be told so
+export const MAX_UPLOAD_BYTES = 15_000_000;
+
 const websiteRegex = /^(.+:\/\/)?[\da-z]+([.-][\da-z]+)*\.[a-z]{2,5}(:\d{1,5})?(\/.*)?$/;
 const localhostRegex = /^(.+:\/\/)?localhost(:\d{1,5})?(\/.*)?$/;
 

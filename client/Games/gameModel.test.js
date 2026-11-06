@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 
+import { MAX_UPLOAD_BYTES as SERVER_MAX_UPLOAD_BYTES } from '../../server/router/games';
+
 import {
+	MAX_UPLOAD_BYTES,
 	asNumber,
 	filtersFromUrl,
 	filtersToQuery,
@@ -16,6 +19,12 @@ import {
 	relatedGames,
 	tagCounts,
 } from './gameModel';
+
+// The form refuses a file by this size before reading it, and the server by the same size after; one that
+// drifted would have the client send a file only to be told what it could have said itself
+test("the upload limit is the server's", () => {
+	expect(MAX_UPLOAD_BYTES).toBe(SERVER_MAX_UPLOAD_BYTES);
+});
 
 describe('asNumber', () => {
 	test('parses numeric strings', () => {

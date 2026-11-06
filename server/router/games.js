@@ -6,8 +6,9 @@ import { storeGameFile } from '../utils/gameFiles';
 
 import { jsonObject } from './jsonObject';
 
-// Big enough for phone photos and rulebook pdfs, small enough to keep dataUri JSON bodies sane
-const MAX_UPLOAD_BYTES = 15_000_000;
+// Big enough for phone photos and rulebook pdfs, small enough to keep dataUri JSON bodies sane. The client refuses
+// the same size before reading the file, so the limit is pinned equal on both sides by test.
+export const MAX_UPLOAD_BYTES = 15_000_000;
 
 // A per-game ceiling as well as a per-file one; without it the disk is a loop of valid uploads away
 const MAX_FILES_PER_GAME = 40;
