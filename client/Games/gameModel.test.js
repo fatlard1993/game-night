@@ -51,7 +51,14 @@ describe('links', () => {
 
 	test('fixLink adds a protocol only when missing', () => {
 		expect(fixLink('example.com')).toBe('https://example.com');
+		expect(fixLink('localhost:8034')).toBe('https://localhost:8034');
 		expect(fixLink('http://example.com')).toBe('http://example.com');
+	});
+
+	// `https://mailto:...` is what a mail link used to become
+	test('fixLink leaves mail and phone links as they are', () => {
+		expect(fixLink('mailto:someone@example.com')).toBe('mailto:someone@example.com');
+		expect(fixLink('tel:+15555550100')).toBe('tel:+15555550100');
 	});
 
 	test('parse/serialize round-trips labeled and bare links', () => {

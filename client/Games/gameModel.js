@@ -16,7 +16,9 @@ const localhostRegex = /^(.+:\/\/)?localhost(:\d{1,5})?(\/.*)?$/;
 
 export const isLink = url => websiteRegex.test(url) || localhostRegex.test(url);
 
-export const fixLink = url => (/.+:\/\//.test(url) ? url : `https://${url}`);
+// A bare domain gets https. A url already carrying one of the schemes a link may have (the same set safeUrl lets
+// through) is left alone; `localhost:8034` is a host and port, not a scheme, and still gets its https.
+export const fixLink = url => (/^(?:[a-z][\d+.a-z-]*:\/\/|mailto:|tel:)/i.test(url) ? url : `https://${url}`);
 
 // A number field left blank round-trips as '' through the db, treat anything non-numeric as unset
 export const asNumber = value => {
