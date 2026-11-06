@@ -41,6 +41,10 @@ const enrichSteamGames = async () => {
 
 	while (pending.length > 0) {
 		const game = pending.shift();
+		const stored = games.read({ id: game.id });
+
+		// Deleted while it waited its turn: nothing to fill in, and no reason to spend the store's rate budget on it
+		if (!stored) continue;
 
 		count++;
 
@@ -49,8 +53,7 @@ const enrichSteamGames = async () => {
 			// after upgrading picks all of them up again. storeGameFile mints a new file each
 			// call, which would staple a second cover onto games that already have one: skip the
 			// fetch when there is already a picture, and the pass becomes safe to repeat.
-			const stored = games.read({ id: game.id });
-			const hasPicture = Object.values(stored?.files || {}).some(file => file.type?.startsWith('image/'));
+			const hasPicture = Object.values(stored.files || {}).some(file => file.type?.startsWith('image/'));
 
 			if (!hasPicture) {
 				const coverResponse = await fetch(
