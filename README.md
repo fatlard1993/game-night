@@ -18,7 +18,7 @@ Every game gets its own page:
 
 <img src=".github/phone.png" alt="The library on a phone: the search box, filters scrolling in one row, and cards two across" width="300">
 
-A fresh install seeds itself with 60+ ready-to-play classics, rules included, covers fetched in the background. Own a Steam library? Once unlocked, import it from the add button (+) with a Steam Web API key and your Steam id, vanity name or profile url: covers, descriptions, and genre tags land automatically.
+A fresh install seeds itself with 60+ ready-to-play classics, rules included, covers fetched in the background. Own a Steam library? Once unlocked, import it from the add button (+) with a Steam Web API key and your Steam id, vanity name or profile url: covers, descriptions, and genre tags land automatically. The key and the resolved id are kept in the database, so the next import can leave them blank.
 
 ## Usage
 

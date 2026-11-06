@@ -6,12 +6,15 @@ import gamesRoutes from './games';
 import sessionRoutes from './session';
 import steamRoutes from './steam';
 
-// Reading is open to anyone on the LAN; every write goes through the admin session. One gate
-// here rather than per-route, so a new endpoint can't be added already unguarded.
+// Reading is open to anyone on the LAN; every write goes through the admin session, and so do the Steam
+// endpoints, whose one read says whose library this is. One gate here rather than per-route, so a new
+// endpoint can't be added already unguarded.
 const requiresAdmin = request => {
 	const { pathname } = new URL(request.url);
 
-	return request.method !== 'GET' && pathname.startsWith('/api/') && pathname !== '/api/session';
+	if (!pathname.startsWith('/api/') || pathname === '/api/session') return false;
+
+	return request.method !== 'GET' || pathname.startsWith('/api/steam/');
 };
 
 // A JSON body arriving as text/plain is the shape a cross-origin form uses to dodge preflight.
