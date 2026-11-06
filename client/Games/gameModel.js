@@ -33,6 +33,10 @@ const formatRange = (min, max, suffix) => {
 	return `${min}-${max}${suffix}`;
 };
 
+// A range typed backwards (min 10, max 2) was meant the other way round
+export const orderedRange = (min, max) =>
+	min !== undefined && max !== undefined && min > max ? [max, min] : [min, max];
+
 export const playersLabel = game => {
 	const label = formatRange(asNumber(game.playersMin), asNumber(game.playersMax), '');
 

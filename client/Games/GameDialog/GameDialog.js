@@ -2,7 +2,7 @@ import { FormDialog, failureReason } from '@vanilla-bean/components';
 
 import { createGame, updateGame, deleteGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
-import { parseLinks, otherGameNames, asNumber } from '../gameModel';
+import { parseLinks, otherGameNames, asNumber, orderedRange } from '../gameModel';
 
 import GameForm from './GameForm';
 
@@ -64,13 +64,16 @@ export default class GameDialog extends FormDialog {
 	async _saveGame() {
 		const { links, playersMin, playersMax, playTimeMin, playTimeMax, ...rest } = this.form.options.data;
 
+		// Number inputs hand back strings; store real numbers, or '' for unset, with each range the right way up
+		const [playersLow, playersHigh] = orderedRange(asNumber(playersMin), asNumber(playersMax));
+		const [timeLow, timeHigh] = orderedRange(asNumber(playTimeMin), asNumber(playTimeMax));
+
 		const body = {
 			...rest,
-			// Number inputs hand back strings; store real numbers, or '' for unset
-			playersMin: asNumber(playersMin) ?? '',
-			playersMax: asNumber(playersMax) ?? '',
-			playTimeMin: asNumber(playTimeMin) ?? '',
-			playTimeMax: asNumber(playTimeMax) ?? '',
+			playersMin: playersLow ?? '',
+			playersMax: playersHigh ?? '',
+			playTimeMin: timeLow ?? '',
+			playTimeMax: timeHigh ?? '',
 			links: parseLinks(links),
 			related: this.form.getRelated(),
 			tags: this.form.getTags(),

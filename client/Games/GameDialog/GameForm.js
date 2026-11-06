@@ -36,9 +36,9 @@ export default class GameForm extends Form {
 	};
 
 	constructor(options = {}) {
-		// description and rules are edited on the game's page (markdown editor), not here,
-		// excluding them keeps a stale dialog from clobbering page-side edits
-		const { tags, related, files, id, description, rules, ...gameData } = options.data || {};
+		// description and rules are edited on the game's page (markdown editor), and the Steam fields by the
+		// import's background pass; none is edited here, and sending a stale copy back would clobber theirs
+		const { tags, related, files, id, description, rules, steamAppId, steamEnriched, ...gameData } = options.data || {};
 
 		super({
 			...options,

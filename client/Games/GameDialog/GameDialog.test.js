@@ -58,7 +58,11 @@ describe('GameDialog delete', () => {
 	});
 
 	test('a failed delete keeps the dialog open with the reason', async () => {
-		deleteGame.mockResolvedValue({ status: 'error', response: { ok: false, status: 500 }, body: { error: 'disk full' } });
+		deleteGame.mockResolvedValue({
+			status: 'error',
+			response: { ok: false, status: 500 },
+			body: { error: 'disk full' },
+		});
 
 		const { deleting, confirm } = await askToDelete();
 
@@ -89,9 +93,44 @@ describe('GameDialog save', () => {
 		for (const elem of document.querySelectorAll('dialog')) elem.remove();
 	});
 
+	// The Steam fields are the import's to write; a stale copy from the dialog reset its progress
+	test('sends each range the right way up, and none of the fields it does not edit', async () => {
+		updateGame.mockReset();
+		updateGame.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: { id: 'g1' } });
+
+		const dialog = new GameDialog({
+			game: {
+				id: 'g1',
+				name: 'Chess',
+				playersMin: '6',
+				playersMax: '2',
+				playTimeMin: '',
+				playTimeMax: '30',
+				description: 'kept',
+				rules: 'kept',
+				steamAppId: 570,
+				steamEnriched: true,
+			},
+		});
+
+		await opened();
+
+		expect(await dialog.save()).toBe(true);
+
+		const [, { body }] = updateGame.mock.calls[0];
+
+		expect(body).toMatchObject({ name: 'Chess', playersMin: 2, playersMax: 6, playTimeMin: '', playTimeMax: 30 });
+		for (const key of ['description', 'rules', 'steamAppId', 'steamEnriched', 'id'])
+			expect(body).not.toHaveProperty(key);
+	});
+
 	test('an upload failing after the game saved says so beside the reason', async () => {
 		updateGame.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: { id: 'g1' } });
-		uploadGameFile.mockResolvedValue({ status: 'error', response: { ok: false, status: 413 }, body: { error: 'too big' } });
+		uploadGameFile.mockResolvedValue({
+			status: 'error',
+			response: { ok: false, status: 413 },
+			body: { error: 'too big' },
+		});
 
 		const dialog = new GameDialog({ game: { id: 'g1', name: 'Chess' } });
 

@@ -10,6 +10,7 @@ import {
 	gameMatchesFilters,
 	isLink,
 	fixLink,
+	orderedRange,
 	parseLinks,
 	searchGames,
 	serializeLinks,
@@ -86,6 +87,16 @@ describe('otherGameNames', () => {
 
 	test('tolerates a missing/undefined library', () => {
 		expect(otherGameNames(undefined, 'a')).toEqual([]);
+	});
+});
+
+describe('orderedRange', () => {
+	test('swaps a range typed backwards and leaves the rest alone', () => {
+		expect(orderedRange(10, 2)).toEqual([2, 10]);
+		expect(orderedRange(2, 10)).toEqual([2, 10]);
+		expect(orderedRange(4, 4)).toEqual([4, 4]);
+		expect(orderedRange(undefined, 2)).toEqual([undefined, 2]);
+		expect(orderedRange(10, undefined)).toEqual([10, undefined]);
 	});
 });
 
