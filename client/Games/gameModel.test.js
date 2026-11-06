@@ -8,6 +8,7 @@ import {
 	isLink,
 	fixLink,
 	parseLinks,
+	searchGames,
 	serializeLinks,
 	otherGameNames,
 	playersLabel,
@@ -76,6 +77,34 @@ describe('otherGameNames', () => {
 
 	test('tolerates a missing/undefined library', () => {
 		expect(otherGameNames(undefined, 'a')).toEqual([]);
+	});
+});
+
+describe('searchGames', () => {
+	const games = [
+		{ id: 'a', name: 'Spoons', description: 'Grab a spoon when the pig is called', tags: ['card-game'] },
+		{ id: 'b', name: 'Pig', description: 'One die, one decision', tags: ['dice-game'] },
+		{ id: 'c', name: 'Yahtzee', description: 'Five dice, thirteen categories', tags: ['dice-game'] },
+	];
+	const names = found => found.map(game => game.name);
+
+	test('no terms: everything, alphabetized', () => {
+		expect(names(searchGames(games, {}))).toEqual(['Pig', 'Spoons', 'Yahtzee']);
+		expect(names(searchGames(games))).toEqual(['Pig', 'Spoons', 'Yahtzee']);
+	});
+
+	// filter() alone answers in the order the games were added; a name match has to come first
+	test('live text ranks by relevance', () => {
+		expect(names(searchGames(games, { text: 'pig' }))).toEqual(['Pig', 'Spoons']);
+	});
+
+	test('chips alone alphabetize', () => {
+		expect(names(searchGames(games, { chips: ['dice-game'] }))).toEqual(['Pig', 'Yahtzee']);
+	});
+
+	test('every term must match', () => {
+		expect(names(searchGames(games, { chips: ['dice-game'], text: 'pig' }))).toEqual(['Pig']);
+		expect(names(searchGames(games, { chips: ['card-game'], text: 'yahtzee' }))).toEqual([]);
 	});
 });
 

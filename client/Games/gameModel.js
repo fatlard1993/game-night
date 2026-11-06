@@ -1,3 +1,5 @@
+import uFuzzy from '@leeoniya/ufuzzy';
+
 export const COMPLEXITY_LEVELS = ['Light', 'Medium', 'Heavy'];
 
 // The primary "where-like" axis, each value is a scene bundle (place + posture + how you gather),
@@ -117,6 +119,48 @@ export const gameHaystack = game =>
 	[game.name, game.description, game.setting, game.complexity, ...(Array.isArray(game.tags) ? game.tags : [])]
 		.filter(Boolean)
 		.join(' ');
+
+// Tolerant fuzzy: allows insertions, substitutions, transpositions, and deletions within matches
+const fuzzy = new uFuzzy({ intraMode: 1, intraIns: 5, intraSub: 1, intraTrn: 1, intraDel: 1 });
+
+const byName = (a, b) => a.name.localeCompare(b.name);
+
+/**
+ * The games every term matches: the committed chips and the live text alike, AND semantics. With live text the
+ * result is in its relevance order; chips alone read better alphabetized. filter() alone answers in haystack
+ * order, which is the order the games were added, so relevance takes info() and sort() as well, which search()
+ * bundles.
+ * @param games the games to search, already filtered
+ * @param search as SearchChips emits it
+ * @param search.chips the committed terms
+ * @param search.text the live text
+ */
+export const searchGames = (games, { chips = [], text = '' } = {}) => {
+	const liveText = text.trim();
+	const terms = [...chips, liveText].filter(Boolean);
+
+	if (terms.length === 0) return [...games].sort(byName);
+
+	const haystacks = games.map(game => gameHaystack(game));
+
+	let allowed = null;
+	let ranked = null;
+
+	for (const term of terms) {
+		const [matches, info, order] = fuzzy.search(haystacks, term);
+		const indexes = matches || [];
+		const matchSet = new Set(indexes);
+
+		allowed = allowed === null ? matchSet : new Set([...allowed].filter(index => matchSet.has(index)));
+
+		// Past uFuzzy's info threshold (a thousand matches) there is no ranking, only the matches
+		if (term === liveText) ranked = order ? order.map(position => info.idx[position]) : indexes;
+	}
+
+	if (ranked) return ranked.filter(index => allowed.has(index)).map(index => games[index]);
+
+	return [...allowed].map(index => games[index]).sort(byName);
+};
 
 // Filter state <-> URL query (history mode, e.g. /games?setting=Couch&tag=co-op&q=trick).
 // Arrays use repeated keys so terms with commas/spaces survive URLSearchParams encoding.

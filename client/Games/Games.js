@@ -1,4 +1,3 @@
-import uFuzzy from '@leeoniya/ufuzzy';
 import { View, Component, Content, ContextMenu, EmptyState, styled, failureReason } from '@vanilla-bean/components';
 
 import { getGames } from '../api';
@@ -9,10 +8,7 @@ import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
 import GameDialog from './GameDialog/GameDialog';
 import confirmDeleteGame from './confirmDeleteGame';
-import { gameHaystack, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './gameModel';
-
-// Tolerant fuzzy: allows insertions, substitutions, transpositions, and deletions within matches
-const fuzzy = new uFuzzy({ intraMode: 1, intraIns: 5, intraSub: 1, intraTrn: 1, intraDel: 1 });
+import { searchGames, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './gameModel';
 
 const CardGrid = styled(
 	Component,
@@ -114,32 +110,7 @@ export default class Games extends View {
 			}),
 		);
 
-		const { chips = [], text = '' } = this.filters.search || {};
-		const liveText = text.trim();
-		const terms = [...chips, liveText].filter(Boolean);
-
-		if (terms.length === 0) return filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-		const haystacks = filtered.map(game => gameHaystack(game));
-
-		// Every term (committed chips + live text) must match, AND semantics
-		let allowed = null;
-		let textOrder = null;
-
-		for (const term of terms) {
-			const matches = fuzzy.filter(haystacks, term) || [];
-			const matchSet = new Set(matches);
-
-			allowed = allowed === null ? matchSet : new Set([...allowed].filter(index => matchSet.has(index)));
-
-			if (term === liveText) textOrder = matches;
-		}
-
-		// The live text term's fuzzy order is relevance order, use it when present;
-		// chips-only searches read better alphabetized
-		if (textOrder) return textOrder.filter(index => allowed.has(index)).map(index => filtered[index]);
-
-		return [...allowed].map(index => filtered[index]).sort((a, b) => a.name.localeCompare(b.name));
+		return searchGames(filtered, this.filters.search);
 	}
 
 	renderContent() {
