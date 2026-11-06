@@ -201,9 +201,11 @@ export default class GamePage extends View {
 
 	renderContent() {
 		// A failed request leaves an Error in body, which is truthy; rendering it as a game gave
-		// a page with an undefined name and no content instead of saying what went wrong
-		const failed = this.game?.status === 'error';
-		const game = failed ? null : this.game.body;
+		// a page with an undefined name and no content instead of saying what went wrong. A 404 is
+		// its own case: a deleted game or a mistyped link, which no retry fixes.
+		const notFound = this.game?.status === 'error' && this.game.response?.status === 404;
+		const failed = this.game?.status === 'error' && !notFound;
+		const game = failed || notFound ? null : this.game.body;
 
 		this.header.empty();
 		this.header.elem.style.display = game ? '' : 'none';
@@ -214,7 +216,7 @@ export default class GamePage extends View {
 				appendTo: this.content,
 				icon: failed ? 'triangle-exclamation' : 'dice',
 				title: failed ? 'Could not load this game' : 'Game not found',
-				message: failed ? failureReason(this.game) : '',
+				message: failed ? failureReason(this.game) : 'It may have been deleted, or the link is off',
 				action: failed ? { textContent: 'Try again', onPointerPress: () => this.game.refetch?.() } : undefined,
 				append: this._backLink({ textContent: 'Back to library' }),
 			});
