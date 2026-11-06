@@ -127,7 +127,7 @@ export default class Games extends View {
 				icon: hasAnyGames ? 'magnifying-glass' : 'dice',
 				message: hasAnyGames
 					? 'No games match the current search/filters'
-					: 'No games yet .. Add them with the + button above',
+					: `No games yet .. ${context.admin ? 'Add them with the + button above' : 'Log in with the padlock above to add some'}`,
 			});
 
 			return;
