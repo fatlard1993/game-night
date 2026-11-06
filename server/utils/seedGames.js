@@ -2,7 +2,7 @@ import games from '../database/games';
 import { fetchSeedCovers } from './seedCovers';
 
 // prettier-ignore
-const seed = [
+export const seed = [
 	{
 		name: 'Yahtzee',
 		imageSource: { url: 'https://upload.wikimedia.org/wikipedia/commons/3/34/Original_Yahtzee_game_set_-_1980s_UK_release.jpg' },
