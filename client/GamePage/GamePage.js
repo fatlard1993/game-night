@@ -174,7 +174,8 @@ export default class GamePage extends View {
 
 		this.loaded = true;
 
-		const session = context.subscribe({ key: 'admin', callback: () => this.renderContent() });
+		// Logging in or out reshapes the header; while editing it waits like any other repaint
+		const session = context.subscribe({ key: 'admin', callback: repaint });
 
 		this.addCleanup('sessionSubscription', () => session.unsubscribe());
 
