@@ -135,10 +135,13 @@ const queueEnrichment = entries => {
 };
 
 // Games whose storefront pass never completed. An import interrupted by a restart or a deploy
-// leaves these behind; nothing else would ever come back for them. Returns immediately: the
-// queue drains in the background for as long as it takes.
+// leaves these behind; nothing else would ever come back for them.
+export const awaitingEnrichment = () =>
+	Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
+
+// Returns immediately: the queue drains in the background for as long as it takes
 export const resumeSteamEnrichment = () => {
-	const awaiting = Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
+	const awaiting = awaitingEnrichment();
 
 	if (awaiting.length === 0) return;
 

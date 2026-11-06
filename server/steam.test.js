@@ -6,7 +6,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 
 import database from './database/database';
 import games from './database/games';
-import { resumeSteamEnrichment } from './steam';
+import { awaitingEnrichment } from './steam';
 
 const dbPath = path.join(os.tmpdir(), `gameNight-steam-test-${process.pid}.json`);
 
@@ -21,31 +21,20 @@ beforeEach(() => {
 	database.db.data.games = {};
 });
 
-// resumeSteamEnrichment queues in the background; these assert what it picks up, not what the
-// storefront answers. The network is never reached, because nothing here is left to enrich.
-describe('resumeSteamEnrichment', () => {
-	test('leaves the queue alone when nothing is waiting', async () => {
+// What resumeSteamEnrichment queues on boot, asserted without the queue: the pass itself reaches the storefront
+describe('awaitingEnrichment', () => {
+	test('an import interrupted before its storefront pass is picked up', async () => {
 		await games.create({ name: 'Board Game' });
 		await games.create({ name: 'Done', steamAppId: 570, steamEnriched: true });
-
-		expect(() => resumeSteamEnrichment()).not.toThrow();
-	});
-
-	test('an import interrupted before its storefront pass is still marked unfinished', async () => {
 		const marooned = await games.create({ name: 'Marooned', steamAppId: 440 });
 
-		expect(marooned.steamEnriched).toBe(false);
-
-		const waiting = Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
-
-		expect(waiting.map(game => game.name)).toEqual(['Marooned']);
+		expect(awaitingEnrichment().map(game => game.id)).toEqual([marooned.id]);
 	});
 
 	test('a game with no steam id is never queued, however bare it looks', async () => {
 		await games.create({ name: 'Homemade' });
+		await games.create({ name: 'Also homemade', steamEnriched: false });
 
-		const waiting = Object.values(games.data).filter(game => game.steamAppId && !game.steamEnriched);
-
-		expect(waiting).toEqual([]);
+		expect(awaitingEnrichment()).toEqual([]);
 	});
 });
