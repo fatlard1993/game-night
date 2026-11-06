@@ -79,6 +79,31 @@ describe('uploading a file', () => {
 	});
 });
 
+describe('serving a file', () => {
+	const stored = async name => {
+		const response = await upload({ ...text, name });
+		const [fileId] = Object.keys((await response.json()).files);
+
+		return gamesRouter(new Request(`http://test/api/games/${game.id}/files/${fileId}`));
+	};
+
+	// filename="" holds an ASCII stand-in; the real name, spaces and quotes and all, travels in filename*
+	test('names the download as it was uploaded', async () => {
+		const response = await stored('house rules "final".txt');
+		const disposition = response.headers.get('content-disposition');
+
+		expect(disposition).toStartWith('inline; filename="house rules _final_.txt"');
+		expect(disposition).toContain(`filename*=UTF-8''house%20rules%20%22final%22.txt`);
+		expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+		expect(await response.text()).toBe('hello');
+	});
+
+	test('answers 404 for a file the game does not list, whoever asks', async () => {
+		expect((await gamesRouter(new Request(`http://test/api/games/${game.id}/files/missing`))).status).toBe(404);
+		expect((await gamesRouter(new Request(`http://test/api/games/toString/files/x`))).status).toBe(404);
+	});
+});
+
 describe('logging in', () => {
 	test('a body that is not an object is a bad request', async () => {
 		await expect(sessionRouter(json('POST', '/api/session', null))).rejects.toMatchObject({ status: 400 });

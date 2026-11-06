@@ -16,6 +16,20 @@ const MAX_FILES_PER_GAME = 40;
 // back as a Content-Type header, so it has to look like one.
 const DATA_URI = /^data:([\w.+-]+\/[\w.+-]+)(?:;charset=[^;,]+)?;base64,(.+)$/;
 
+// RFC 5987: the real name goes in filename*, percent-encoded; filename holds an ASCII stand-in for whatever can't
+// read the first. A percent-encoded name inside filename="" is what the browser saves it as, %20s included.
+const encodeFilename = name =>
+	encodeURIComponent(name).replaceAll(
+		/[!'()*]/g,
+		character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+	);
+
+const contentDisposition = (inline, name) => {
+	const plain = name.replaceAll(/["\\]|[^\x20-\x7e]/g, '_');
+
+	return `${inline ? 'inline' : 'attachment'}; filename="${plain}"; filename*=UTF-8''${encodeFilename(name)}`;
+};
+
 const gameRoutes = crudRoutes('/api/games', games);
 
 const gamesRouter = async request => {
@@ -70,7 +84,7 @@ const gamesRouter = async request => {
 			headers: {
 				'Content-Type': meta.type || 'application/octet-stream',
 				'X-Content-Type-Options': 'nosniff',
-				'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${encodeURIComponent(meta.name)}"`,
+				'Content-Disposition': contentDisposition(inline, meta.name),
 			},
 		});
 	}
