@@ -2,6 +2,8 @@ import { requestMatch } from '@vanilla-bean/components/app';
 
 import { checkPassword, clearedCookie, isAdmin, sessionCookie } from '../auth';
 
+import { jsonObject } from './jsonObject';
+
 // argon2 already makes each guess expensive; this adds a growing delay on top so a script
 // on the LAN can't grind through a wordlist while everyone else keeps browsing
 const failures = new Map();
@@ -21,7 +23,7 @@ const sessionRouter = async (request, server) => {
 
 		await Bun.sleep(penalty(address));
 
-		const { password } = await request.json();
+		const { password } = await jsonObject(request);
 
 		if (!(await checkPassword(password))) {
 			failures.set(address, (failures.get(address) || 0) + 1);

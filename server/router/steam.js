@@ -2,6 +2,8 @@ import { requestMatch } from '@vanilla-bean/components/app';
 
 import { importSteamLibrary, steamSettings, storedSteamCredentials } from '../steam';
 
+import { jsonObject } from './jsonObject';
+
 const steamRouter = async request => {
 	let match;
 
@@ -10,7 +12,7 @@ const steamRouter = async request => {
 
 	match = requestMatch('POST', '/api/steam/import', request);
 	if (match) {
-		const body = await request.json();
+		const body = await jsonObject(request);
 		const stored = storedSteamCredentials();
 
 		const apiKey = body.apiKey?.trim() || stored.apiKey;

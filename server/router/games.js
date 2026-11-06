@@ -4,6 +4,8 @@ import games from '../database/games';
 import { readGameFile, deleteGameFile } from '../utils/fileStorage';
 import { storeGameFile } from '../utils/gameFiles';
 
+import { jsonObject } from './jsonObject';
+
 // Big enough for phone photos and rulebook pdfs, small enough to keep dataUri JSON bodies sane
 const MAX_UPLOAD_BYTES = 15_000_000;
 
@@ -21,7 +23,7 @@ const gamesRouter = async request => {
 
 		if (!game) return new Response(null, { status: 404 });
 
-		const { name, dataUri } = await request.json();
+		const { name, dataUri } = await jsonObject(request);
 		const dataUriMatch = dataUri && /^data:([^;,]+)(?:;charset=[^;,]+)?;base64,(.+)$/.exec(dataUri);
 
 		if (!dataUriMatch) return new Response('Expected a JSON { name, dataUri } body', { status: 400 });
