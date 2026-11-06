@@ -9,7 +9,6 @@ import {
 	filtersFromUrl,
 	filtersToQuery,
 	gameMatchesFilters,
-	isLink,
 	fixLink,
 	orderedRange,
 	parseLinks,
@@ -42,13 +41,6 @@ describe('asNumber', () => {
 });
 
 describe('links', () => {
-	test('isLink accepts domains and localhost', () => {
-		expect(isLink('https://example.com/page')).toBe(true);
-		expect(isLink('example.com')).toBe(true);
-		expect(isLink('localhost:8034')).toBe(true);
-		expect(isLink('not a url')).toBe(false);
-	});
-
 	test('fixLink adds a protocol only when missing', () => {
 		expect(fixLink('example.com')).toBe('https://example.com');
 		expect(fixLink('localhost:8034')).toBe('https://localhost:8034');

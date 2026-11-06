@@ -11,11 +11,6 @@ export const SETTINGS = ['Table', 'Couch', 'Outside', 'Anywhere'];
 // sending it whole to be told so
 export const MAX_UPLOAD_BYTES = 15_000_000;
 
-const websiteRegex = /^(.+:\/\/)?[\da-z]+([.-][\da-z]+)*\.[a-z]{2,5}(:\d{1,5})?(\/.*)?$/;
-const localhostRegex = /^(.+:\/\/)?localhost(:\d{1,5})?(\/.*)?$/;
-
-export const isLink = url => websiteRegex.test(url) || localhostRegex.test(url);
-
 // A bare domain gets https. A url already carrying one of the schemes a link may have (the same set safeUrl lets
 // through) is left alone; `localhost:8034` is a host and port, not a scheme, and still gets its https.
 export const fixLink = url => (/^(?:[a-z][\d+.a-z-]*:\/\/|mailto:|tel:)/i.test(url) ? url : `https://${url}`);
