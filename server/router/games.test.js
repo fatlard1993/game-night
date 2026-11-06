@@ -2,8 +2,9 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 
+import { initAuth } from '../auth';
 import database from '../database/database';
 import games from '../database/games';
 
@@ -13,6 +14,7 @@ import sessionRouter from './session';
 const dbPath = path.join(os.tmpdir(), `gameNight-routes-test-${process.pid}.json`);
 
 await database.init({ path: dbPath });
+await initAuth({ password: 'correct horse' });
 
 afterAll(() => {
 	fs.rmSync(dbPath, { force: true });
@@ -107,5 +109,29 @@ describe('serving a file', () => {
 describe('logging in', () => {
 	test('a body that is not an object is a bad request', async () => {
 		await expect(sessionRouter(json('POST', '/api/session', null))).rejects.toMatchObject({ status: 400 });
+	});
+
+	// Without the let-go, someone who fumbled the password a few times waited the full penalty on every try
+	// for the rest of the process
+	test('wrong guesses wait longer each time, until a quiet quarter hour forgives them', async () => {
+		const server = { requestIP: () => ({ address: '10.0.0.7' }) };
+		const sleep = spyOn(Bun, 'sleep').mockResolvedValue();
+		const now = spyOn(Date, 'now');
+		const guess = () => sessionRouter(json('POST', '/api/session', { password: 'wrong' }), server);
+
+		try {
+			now.mockReturnValue(1_000_000);
+			expect((await guess()).status).toBe(401);
+			expect((await guess()).status).toBe(401);
+			expect((await guess()).status).toBe(401);
+			expect(sleep.mock.calls.map(([ms]) => ms)).toEqual([0, 250, 750]);
+
+			now.mockReturnValue(1_000_000 + 16 * 60 * 1000);
+			await guess();
+			expect(sleep.mock.calls.at(-1)).toEqual([0]);
+		} finally {
+			sleep.mockRestore();
+			now.mockRestore();
+		}
 	});
 });
