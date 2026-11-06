@@ -68,7 +68,14 @@ const readCookie = request => {
 	for (const part of header.split(';')) {
 		const [name, ...value] = part.trim().split('=');
 
-		if (name === COOKIE_NAME) return decodeURIComponent(value.join('='));
+		if (name !== COOKIE_NAME) continue;
+
+		// A malformed percent sequence in a hand-made cookie throws; that is no session, not a server error
+		try {
+			return decodeURIComponent(value.join('='));
+		} catch {
+			return null;
+		}
 	}
 
 	return null;
@@ -86,8 +93,7 @@ export const checkPassword = async password => {
 
 // SameSite=Strict is what keeps another site's fetch from riding along on these cookies;
 // Secure is deliberately absent, this serves plain http on a LAN
-const cookie = (value, maxAge) =>
-	`${COOKIE_NAME}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
+const cookie = (value, maxAge) => `${COOKIE_NAME}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
 
 export const sessionCookie = () => cookie(mintToken(), SESSION_DAYS * 24 * 60 * 60);
 

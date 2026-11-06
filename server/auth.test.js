@@ -60,6 +60,11 @@ describe('the session cookie', () => {
 		expect(isAdmin(requestWith(''))).toBe(false);
 	});
 
+	// decodeURIComponent throws on this, and a throw on the way to every request's admin check was a 500
+	test('is no session when it cannot even be decoded', () => {
+		expect(isAdmin(requestWith('%E0%A4%A'))).toBe(false);
+	});
+
 	test('is not accepted once its expiry has passed', () => {
 		const past = Date.now() - 1000;
 
