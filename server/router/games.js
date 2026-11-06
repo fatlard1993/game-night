@@ -12,6 +12,10 @@ const MAX_UPLOAD_BYTES = 15_000_000;
 // A per-game ceiling as well as a per-file one; without it the disk is a loop of valid uploads away
 const MAX_FILES_PER_GAME = 40;
 
+// What FileReader's readAsDataURL produces: a mime type, at most a charset, then base64. The type is stored and sent
+// back as a Content-Type header, so it has to look like one.
+const DATA_URI = /^data:([\w.+-]+\/[\w.+-]+)(?:;charset=[^;,]+)?;base64,(.+)$/;
+
 const gameRoutes = crudRoutes('/api/games', games);
 
 const gamesRouter = async request => {
@@ -24,20 +28,26 @@ const gamesRouter = async request => {
 		if (!game) return new Response(null, { status: 404 });
 
 		const { name, dataUri } = await jsonObject(request);
-		const dataUriMatch = dataUri && /^data:([^;,]+)(?:;charset=[^;,]+)?;base64,(.+)$/.exec(dataUri);
+		const dataUriMatch = typeof dataUri === 'string' && DATA_URI.exec(dataUri);
 
-		if (!dataUriMatch) return new Response('Expected a JSON { name, dataUri } body', { status: 400 });
+		if (!dataUriMatch || (name !== undefined && typeof name !== 'string')) {
+			return new Response('Expected a JSON { name, dataUri } body', { status: 400 });
+		}
 
 		const contentType = dataUriMatch[1];
 		const original = Buffer.from(dataUriMatch[2], 'base64');
 
+		// Base64 that decodes to nothing used to land as a 0-byte attachment
+		if (original.length === 0) return new Response('The file is empty', { status: 400 });
 		if (original.length > MAX_UPLOAD_BYTES) return new Response('File too large', { status: 413 });
 
 		if (Object.keys(game.files || {}).length >= MAX_FILES_PER_GAME)
 			return new Response(`A game can hold ${MAX_FILES_PER_GAME} files`, { status: 413 });
 
 		// storeGameFile caps covers on the way in so the grid never paints multi-megabyte images
-		return Response.json(await storeGameFile(match.id, original, { name, contentType }));
+		const stored = await storeGameFile(match.id, original, { name, contentType });
+
+		return stored ? Response.json(stored) : new Response(null, { status: 404 });
 	}
 
 	match = requestMatch('GET', '/api/games/:id/files/:fileId', request);
