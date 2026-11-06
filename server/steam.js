@@ -12,7 +12,7 @@ const resolveSteamId = async (apiKey, input) => {
 
 	if (idMatch) return idMatch[1];
 
-	const vanityMatch = trimmed.match(/steamcommunity\.com\/id\/([^/]+)/);
+	const vanityMatch = trimmed.match(/steamcommunity\.com\/id\/([^/?#]+)/);
 	const vanity = vanityMatch ? vanityMatch[1] : trimmed;
 
 	if (/^\d{17}$/.test(vanity)) return vanity;
