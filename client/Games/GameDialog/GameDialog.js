@@ -39,24 +39,14 @@ export default class GameDialog extends FormDialog {
 		this._loadGameNames();
 	}
 
-	// Feeds the related-games picker's autocomplete/verification list; the dialog can open
-	// before this lands, and can close before it resolves.
-	async _loadGameNames() {
-		// A cached list arrives at once, while the dialog is still being built and not yet on the page; it is only a closed
-		// dialog that should ignore it
-		let closed = false;
-
-		this.addCleanup('gameNamesClosed', () => (closed = true));
-
-		this._gamesRequest = await getGames({
-			onSuccess: response => {
-				if (closed) return;
-
-				this.form.setGameNames(otherGameNames(response.body, this.options.game?.id));
-			},
+	// Feeds the related-games picker's autocomplete/verification list. A cached list arrives at once, while the
+	// dialog is still being built; the subscription ends with the dialog, so a list arriving after it closed is
+	// never delivered.
+	_loadGameNames() {
+		getGames({
+			scope: this.signal,
+			onSuccess: response => this.form.setGameNames(otherGameNames(response.body, this.options.game?.id)),
 		});
-
-		this.addCleanup('gamesRequest', () => this._gamesRequest?.unsubscribe?.());
 	}
 
 	// hypertether doesn't throw on HTTP errors; every mutation gets its ok checked, and a failed one is handed
