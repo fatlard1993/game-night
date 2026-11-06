@@ -3,21 +3,24 @@ import path from 'path';
 
 import database from '../database/database';
 
-// Attachments live in a per-game folder: <filesDir>/<gameId>/<fileId>
-// nanoid can produce ids with characters that need path safety checks if this ever accepts
-// user-provided ids, resolve() and prefix check guard against traversal either way.
-const gameDir = gameId => {
-	const dir = path.resolve(database.filesDir, gameId);
+// Attachments live in a per-game folder: <filesDir>/<gameId>/<fileId>. Ids reach here only once the record names
+// them, so these checks are a second fence: each id must resolve to exactly one level down, not merely to a path
+// that starts with the parent's (a prefix check lets `../x-files` through beside an `x-files` folder).
+const root = () => path.resolve(database.filesDir);
 
-	if (!dir.startsWith(path.resolve(database.filesDir))) throw new Error('Invalid game id');
+const gameDir = gameId => {
+	const dir = path.resolve(root(), gameId);
+
+	if (path.dirname(dir) !== root()) throw new Error('Invalid game id');
 
 	return dir;
 };
 
 const filePath = (gameId, fileId) => {
-	const file = path.resolve(gameDir(gameId), fileId);
+	const dir = gameDir(gameId);
+	const file = path.resolve(dir, fileId);
 
-	if (!file.startsWith(gameDir(gameId))) throw new Error('Invalid file id');
+	if (path.dirname(file) !== dir) throw new Error('Invalid file id');
 
 	return file;
 };
