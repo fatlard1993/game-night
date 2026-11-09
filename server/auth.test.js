@@ -88,6 +88,14 @@ describe('the session cookie', () => {
 
 	// The signature mixes in the password hash, so the household doesn't stay logged in on a
 	// password the owner has since changed
+	test('keeps working through a restart given the same password', async () => {
+		const before = cookieValue(sessionCookie());
+
+		await initAuth({ password: 'correct horse' });
+
+		expect(isAdmin(requestWith(before))).toBe(true);
+	});
+
 	test('stops working when the password changes', async () => {
 		const before = cookieValue(sessionCookie());
 
