@@ -244,7 +244,7 @@ export default class GamePage extends View {
 			new Button({
 				appendTo: this.header,
 				icon: 'pen',
-				textContent: ' Edit',
+				textContent: 'Edit',
 				title: 'Edit description & rules',
 				onPointerPress: () => {
 					this.editing = true;
@@ -254,7 +254,7 @@ export default class GamePage extends View {
 			new Button({
 				appendTo: this.header,
 				icon: 'gear',
-				textContent: ' Details',
+				textContent: 'Details',
 				title: 'Edit metadata, tags, links & files',
 				onPointerPress: () => new GameDialog({ game, onDeleted: () => navigate(context.libraryUrl) }),
 			});
