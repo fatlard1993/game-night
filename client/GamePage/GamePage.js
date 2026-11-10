@@ -189,7 +189,7 @@ export default class GamePage extends View {
 			variant: 'button',
 			href: context.subscriber('libraryUrl', url => url),
 			title: 'Back to library',
-			tooltip: null,
+			tooltip: false,
 			onClick: event => {
 				if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
