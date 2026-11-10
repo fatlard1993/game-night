@@ -74,7 +74,7 @@ export default class SearchChips extends Container {
 		this.input = new Component({
 			tag: 'input',
 			appendTo: this,
-			attributes: { type: 'text', placeholder: this.options.placeholder || 'Search...' },
+			attributes: { type: 'text', placeholder: this.options.placeholder || 'Search...', 'aria-label': 'Search' },
 			onKeydown: event => {
 				if (event.key === 'Enter' || event.key === ',') {
 					event.preventDefault();
