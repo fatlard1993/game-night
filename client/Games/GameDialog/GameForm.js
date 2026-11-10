@@ -219,6 +219,7 @@ export default class GameForm extends Form {
 			appendTo: row,
 			variant: 'flat',
 			icon: 'close',
+			title: `Remove ${name}`,
 			onPointerPress: event => {
 				event.preventDefault();
 				onRemove(row);

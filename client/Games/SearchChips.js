@@ -138,6 +138,7 @@ export default class SearchChips extends Container {
 			new Button({
 				icon: 'close',
 				variant: 'flat',
+				title: `Remove ${term}`,
 				styles: removeStyles,
 				onPointerPress: () => this.removeChip(chip),
 			}),
