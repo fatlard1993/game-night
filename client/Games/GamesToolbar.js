@@ -82,6 +82,7 @@ export default class GamesToolbar extends styled(
 		this.setting = new Select({
 			appendTo: this.filterRow,
 			value: initial.setting || '',
+			'aria-label': 'Setting',
 			options: [{ label: 'Any setting', value: '' }, ...SETTINGS],
 			styles: selectStyles,
 			onChange: ({ value }) => this._emit({ setting: value }),
@@ -91,6 +92,7 @@ export default class GamesToolbar extends styled(
 			type: 'number',
 			appendTo: this.filterRow,
 			placeholder: 'Players',
+			'aria-label': 'Players',
 			min: 1,
 			value: initial.players || '',
 			styles: () => `
@@ -104,6 +106,7 @@ export default class GamesToolbar extends styled(
 		this.time = new Select({
 			appendTo: this.filterRow,
 			value: initial.maxTime || '',
+			'aria-label': 'Length',
 			options: TIME_FILTERS,
 			styles: selectStyles,
 			onChange: ({ value }) => this._emit({ maxTime: value }),
@@ -112,6 +115,7 @@ export default class GamesToolbar extends styled(
 		this.complexity = new Select({
 			appendTo: this.filterRow,
 			value: initial.maxComplexity || '',
+			'aria-label': 'Complexity',
 			options: [
 				{ label: 'Any complexity', value: '' },
 				...COMPLEXITY_LEVELS.map((level, index) => ({ label: index === 0 ? level : `≤ ${level}`, value: level })),
