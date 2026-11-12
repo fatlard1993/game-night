@@ -1,4 +1,4 @@
-import { Component, Elem, Button, styled } from '@vanilla-bean/components';
+import { Component, Elem, Button, Input, styled } from '@vanilla-bean/components';
 
 // Drawn as the theme's field, with the chips and the text input inside it
 const Container = styled(
@@ -71,15 +71,17 @@ export default class SearchChips extends Container {
 	build() {
 		this.chips = [];
 
-		this.input = new Component({
-			tag: 'input',
+		this.input = new Input({
 			appendTo: this,
-			attributes: { type: 'text', placeholder: this.options.placeholder || 'Search...', 'aria-label': 'Search' },
+			type: 'text',
+			value: this.options.initialText || '',
+			placeholder: this.options.placeholder || 'Search...',
+			'aria-label': 'Search',
 			onKeydown: event => {
 				if (event.key === 'Enter' || event.key === ',') {
 					event.preventDefault();
 					this.commitText();
-				} else if (event.key === 'Backspace' && this.input.elem.value === '') {
+				} else if (event.key === 'Backspace' && this.input.options.value === '') {
 					this.removeChip(this.chips.at(-1));
 				} else if (event.key === 'Escape') {
 					event.preventDefault();
@@ -97,20 +99,16 @@ export default class SearchChips extends Container {
 			}
 		});
 
-		if (this.options.initialText) {
-			this.input.elem.value = this.options.initialText;
-		}
-
 		// Restore chips from a shared URL without re-emitting (Games already has the state)
 		for (const term of this.options.initialChips || []) this._createChip(term);
 	}
 
 	get value() {
-		return { chips: this.chips.map(chip => chip.term), text: this.input.elem.value };
+		return { chips: this.chips.map(chip => chip.term), text: this.input.options.value };
 	}
 
 	set text(value) {
-		this.input.elem.value = value;
+		this.input.options.value = value;
 		this._emit();
 	}
 
@@ -119,11 +117,11 @@ export default class SearchChips extends Container {
 	}
 
 	commitText() {
-		const term = this.input.elem.value.trim();
+		const term = this.input.options.value.trim();
 
 		if (!term) return;
 
-		this.input.elem.value = '';
+		this.input.options.value = '';
 		this.addChip(term);
 	}
 
