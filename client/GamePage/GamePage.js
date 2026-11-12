@@ -442,9 +442,33 @@ export default class GamePage extends View {
 		// Just above the buttons it answers, as a dialog's failed save sits
 		this.saveError = new ErrorNote({ appendTo: this.body, attributes: { role: 'alert' } });
 
+		// Cancel first and quiet, Save last and filled, as in a dialog's footer
 		new EditBar({
 			appendTo: this.body,
 			append: [
+				new Button({
+					textContent: 'Cancel',
+					variant: 'flat',
+					onPointerPress: async () => {
+						// Rules get written here in long sittings; discarding them on a single stray tap,
+						// with no undo and no draft anywhere, is the most expensive slip on the page
+						if (
+							this._editsPending() &&
+							!(await Dialog.confirm({
+								intent: 'danger',
+								header: 'Discard changes?',
+								body: 'Your unsaved edits to the description and rules will be lost.',
+								confirmLabel: 'Discard',
+								cancelLabel: 'Keep editing',
+							}))
+						) {
+							return;
+						}
+
+						this.editing = false;
+						this.renderContent();
+					},
+				}),
 				new Button({
 					textContent: 'Save',
 					onPointerPress: async () => {
@@ -468,28 +492,6 @@ export default class GamePage extends View {
 						// PATCH response now so leaving edit mode isn't a frame behind
 						if (result.body?.id) this.game.body = result.body;
 
-						this.renderContent();
-					},
-				}),
-				new Button({
-					textContent: 'Cancel',
-					onPointerPress: async () => {
-						// Rules get written here in long sittings; discarding them on a single stray tap,
-						// with no undo and no draft anywhere, is the most expensive slip on the page
-						if (
-							this._editsPending() &&
-							!(await Dialog.confirm({
-								intent: 'warning',
-								header: 'Discard changes?',
-								body: 'Your unsaved edits to the description and rules will be lost.',
-								confirmLabel: 'Discard',
-								cancelLabel: 'Keep editing',
-							}))
-						) {
-							return;
-						}
-
-						this.editing = false;
 						this.renderContent();
 					},
 				}),
