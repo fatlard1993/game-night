@@ -1,4 +1,4 @@
-import { Component, Input, SectionLabel, styled, debounce } from '@vanilla-bean/components';
+import { Component, Input, Label, SectionLabel, styled, debounce } from '@vanilla-bean/components';
 
 import Markdown from '../Markdown';
 
@@ -18,6 +18,17 @@ const Pane = styled.Component`
 	display: flex;
 	flex-direction: column;
 `;
+
+// The label holds its textarea and fills the pane, so the textarea stretches to the preview's height beside it
+const Field = styled(
+	Label,
+	() => `
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		margin: 0;
+	`,
+);
 
 const Editor = styled(
 	Input,
@@ -55,7 +66,7 @@ export default class MarkdownEditor extends Container {
 	};
 
 	get value() {
-		return this.editor.elem.value;
+		return this.editor.options.value;
 	}
 
 	build() {
@@ -70,12 +81,10 @@ export default class MarkdownEditor extends Container {
 			}, 300),
 		});
 
-		// The panes' tops line up with the heading above the page body, not 16px under it
-		const label = textContent => new SectionLabel({ textContent, style: { marginTop: 0 } });
-
+		// The textarea is named by a Label tied to it; the preview is a group under its heading
 		this.append(
-			new Pane({ append: [label(`${this.options.label} (markdown)`), this.editor] }),
-			new Pane({ append: [label('Preview'), this.preview] }),
+			new Pane({ append: new Field({ label: `${this.options.label} (markdown)` }, this.editor) }),
+			new Pane({ append: [new SectionLabel({ textContent: 'Preview' }), this.preview] }),
 		);
 	}
 }
