@@ -1,35 +1,33 @@
-import { Dialog, failureReason } from '@vanilla-bean/components';
+import { Dialog, Notify, failureReason } from '@vanilla-bean/components';
 
 import { deleteGame } from '../api';
 
 /**
- * Confirm, then delete the game and its files. The dialog stays open on failure. Cancel comes first: the dialog
- * focuses its first button, so a reflexive Enter keeps the game.
+ * Confirm, then delete the game and its files. A failed delete says why in a danger toast that stays until pressed;
+ * the game is still there, so pressing Delete again retries.
  * @param game the game to delete
  * @param onDeleted called after a successful delete, e.g. to leave the game's page
+ * @returns {Promise<boolean>} whether the game was deleted
  */
-export default function confirmDeleteGame(game, onDeleted) {
-	new Dialog({
-		size: 'small',
+export default async function confirmDeleteGame(game, onDeleted) {
+	const confirmed = await Dialog.confirm({
+		intent: 'danger',
 		header: `Delete "${game.name}"?`,
 		body: 'This also deletes its pictures and attachments.',
-		buttons: ['Cancel', 'Delete'],
-		onButtonPress: async ({ button, dialog, closeDialog }) => {
-			if (button === 'Delete') {
-				const result = await deleteGame(game.id);
-
-				// A failed delete keeps the dialog open instead of pretending it worked
-				if (!result.response?.ok) {
-					dialog.options.intent = 'danger';
-					dialog.options.body = `Delete failed: ${failureReason(result)}`;
-
-					return;
-				}
-
-				onDeleted?.();
-			}
-
-			closeDialog();
-		},
+		confirmLabel: 'Delete',
 	});
+
+	if (!confirmed) return false;
+
+	const result = await deleteGame(game.id);
+
+	if (!result.response?.ok) {
+		new Notify({ intent: 'danger', content: `Delete failed: ${failureReason(result)}` });
+
+		return false;
+	}
+
+	onDeleted?.();
+
+	return true;
 }
