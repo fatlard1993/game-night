@@ -1,4 +1,15 @@
-import { Button, Component, ContextMenu, Input, Select, Toolbar, debounce, styled } from '@vanilla-bean/components';
+import {
+	Button,
+	Component,
+	ContextMenu,
+	Input,
+	Notify,
+	Select,
+	Toolbar,
+	debounce,
+	failureReason,
+	styled,
+} from '@vanilla-bean/components';
 
 import { logOut } from '../api';
 import context from '../context';
@@ -170,7 +181,7 @@ export default class GamesToolbar extends styled(
 		this.sessionButton = new Button({
 			appendTo: this.elem,
 			variant: 'flat',
-			onPointerPress: () => (context.admin ? logOut().then(() => (context.admin = false)) : new LoginDialog()),
+			onPointerPress: () => (context.admin ? this.logOut() : new LoginDialog()),
 		});
 
 		this.addMenu = new ContextMenu({ appendTo: this, reticle: false });
@@ -189,6 +200,19 @@ export default class GamesToolbar extends styled(
 
 		this.sessionButton.options.icon = admin ? 'lock-open' : 'lock';
 		this.sessionButton.options.title = admin ? 'Log out of admin' : 'Admin login';
+	}
+
+	// hypertether resolves on HTTP errors too; a logout the server refused leaves the session, and the UI, as they were
+	async logOut() {
+		const result = await logOut();
+
+		if (!result.response?.ok) {
+			new Notify({ intent: 'danger', content: `Log out failed: ${failureReason(result)}` });
+
+			return;
+		}
+
+		context.admin = false;
 	}
 
 	// Games passes the live vocabulary so the tag checklist reflects the current library
