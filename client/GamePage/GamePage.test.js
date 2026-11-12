@@ -43,6 +43,17 @@ describe('GamePage', () => {
 		await settled();
 	};
 
+	test('the header fills only Edit; Edit details and Delete are flat', () => {
+		const [edit, details, trash] = buttons(page.header.elem);
+
+		expect(edit.textContent.trim()).toBe('Edit');
+		expect(edit.classList.contains('variant-flat')).toBe(false);
+		expect(details.textContent.trim()).toBe('Edit details');
+		expect(details.classList.contains('variant-flat')).toBe(true);
+		expect(trash.title).toBe('Delete game');
+		expect(trash.classList.contains('variant-flat')).toBe(true);
+	});
+
 	test('the editor ends with Cancel, quiet, then Save, filled', async () => {
 		await startEditing();
 

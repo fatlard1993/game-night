@@ -239,7 +239,8 @@ export default class GamePage extends View {
 		this._backLink({ appendTo: this.header, addClass: 'start', icon: 'arrow-left' });
 
 		// Editing writes, and every write needs an admin session; without one the page is
-		// read-only rather than offering buttons the server would refuse
+		// read-only rather than offering buttons the server would refuse. Edit is the page's main action, filled; the
+		// rest are flat
 		if (!this.editing && context.admin) {
 			new Button({
 				appendTo: this.header,
@@ -253,13 +254,15 @@ export default class GamePage extends View {
 			});
 			new Button({
 				appendTo: this.header,
+				variant: 'flat',
 				icon: 'gear',
-				textContent: 'Details',
+				textContent: 'Edit details',
 				title: 'Edit metadata, tags, links & files',
 				onPointerPress: () => new GameDialog({ game, onDeleted: () => navigate(context.libraryUrl) }),
 			});
 			new Button({
 				appendTo: this.header,
+				variant: 'flat',
 				icon: 'trash',
 				title: 'Delete game',
 				onPointerPress: () => confirmDeleteGame(game, () => navigate(context.libraryUrl)),
