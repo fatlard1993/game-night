@@ -108,7 +108,7 @@ const RelatedRow = styled(
 
 const RelatedCard = styled(
 	Card,
-	({ colors, radius, space }) => `
+	({ colors, fontSize, radius, space }) => `
 		display: flex;
 		align-items: center;
 		gap: ${space.sm};
@@ -125,7 +125,7 @@ const RelatedCard = styled(
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			font-size: 1.2em;
+			font-size: ${fontSize.xl};
 			color: ${colors.alpha(colors.gray, 0.8)};
 			background-color: ${colors.alpha(colors.black, 0.4)};
 		}

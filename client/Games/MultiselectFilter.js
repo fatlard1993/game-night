@@ -3,7 +3,7 @@ import { styled, Component, Elem, Icon, Input, Button, capitalize, isDescendantO
 // A multiselect OR filter: a button that opens a searchable checklist popover over a dynamic
 // {value: count} vocabulary (counts shown, values below minCount hidden). Owns its own button.
 export default class MultiselectFilter extends styled.Popover(
-	({ colors, space }) => `
+	({ colors, fontSize, space }) => `
 		display: flex;
 		flex-direction: column;
 		padding: 0;
@@ -64,7 +64,7 @@ export default class MultiselectFilter extends styled.Popover(
 			& .count {
 				margin-left: auto;
 				padding-left: ${space.md};
-				font-size: 0.8em;
+				font-size: ${fontSize.sm};
 				color: ${colors.muted};
 			}
 		}

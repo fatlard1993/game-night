@@ -26,7 +26,7 @@ export default class LoginDialog extends FormDialog {
 
 		this.form.elem.before(
 			new Elem({
-				style: { margin: `0 0 ${theme.space.sm}`, fontSize: '0.9em' },
+				style: { margin: `0 0 ${theme.space.sm}`, fontSize: theme.fontSize.sm },
 				textContent: 'Adding and editing games needs the admin password.',
 			}).elem,
 		);

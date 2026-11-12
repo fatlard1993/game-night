@@ -24,7 +24,7 @@ export default class SteamImportDialog extends Dialog {
 		this.intro = new Elem(
 			{
 				appendTo: this._body,
-				style: { margin: `0 0 ${theme.space.sm}`, fontSize: '0.9em' },
+				style: { margin: `0 0 ${theme.space.sm}`, fontSize: theme.fontSize.sm },
 			},
 			new Elem({ tag: 'span', textContent: 'Needs a free ' }),
 			new Link({

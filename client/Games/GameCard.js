@@ -81,8 +81,8 @@ const Name = styled.Component`
 
 const Meta = styled(
 	Component,
-	({ colors }) => `
-		font-size: 0.8em;
+	({ colors, fontSize }) => `
+		font-size: ${fontSize.sm};
 		color: ${colors.muted};
 	`,
 );

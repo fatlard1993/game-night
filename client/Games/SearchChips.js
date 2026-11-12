@@ -32,12 +32,12 @@ const Container = styled(
 
 const Chip = styled(
 	Component,
-	({ colors, radius, space }) => `
+	({ colors, fontSize, radius, space }) => `
 		display: inline-flex;
 		align-items: center;
 		gap: ${space.xs};
 		padding: 0 2px 0 ${space.sm};
-		font-size: 0.85em;
+		font-size: ${fontSize.sm};
 		border: 1px solid ${colors.light(colors.blue)};
 		border-radius: ${radius.pill};
 		background-color: ${colors.alpha(colors.blue, 0.3)};
@@ -46,11 +46,11 @@ const Chip = styled(
 );
 
 // The chip's own small remove control, smaller than the default icon button
-const removeStyles = () => `
+const removeStyles = ({ fontSize }) => `
 	&, &:empty, &.icon {
 		width: 18px;
 		height: 18px;
-		font-size: 9px;
+		font-size: ${fontSize.xs};
 		border-radius: 50%;
 	}
 `;

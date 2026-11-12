@@ -32,13 +32,13 @@ const Field = styled(
 
 const Editor = styled(
 	Input,
-	() => `
+	({ fontSize }) => `
 		flex: 1;
 		width: 100%;
 		min-height: 240px;
 		resize: vertical;
 		font-family: monospace;
-		font-size: 0.9em;
+		font-size: ${fontSize.sm};
 	`,
 );
 
