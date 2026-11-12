@@ -7,7 +7,7 @@ export default class SteamImportDialog extends Dialog {
 		super({
 			size: 'standard',
 			header: 'Import Steam Library',
-			buttons: ['Import', 'Cancel'],
+			buttons: ['Cancel', 'Import'],
 			onButtonPress: async ({ button, closeDialog }) => {
 				if (button !== 'Import') return closeDialog();
 
@@ -61,11 +61,10 @@ export default class SteamImportDialog extends Dialog {
 		// The dialog can close before the settings fetch lands
 		if (!this.elem?.isConnected) return;
 
-		if (body?.steamId) this.form.options.data.steamId = this.form.inputElements.steamId.elem.value = body.steamId;
+		// The field follows the form's data
+		if (body?.steamId) this.form.options.data.steamId = body.steamId;
 
-		if (body?.configured) {
-			this.form.inputElements.apiKey.elem.placeholder = 'Using saved key (leave blank)';
-		}
+		if (body?.configured) this.form.inputElements.apiKey.options.placeholder = 'Using saved key (leave blank)';
 	}
 
 	async runImport() {
