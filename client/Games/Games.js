@@ -26,7 +26,8 @@ const CardGrid = styled(
 		   phones (the 50% term undercuts 200px there, minus half the gap) */
 		grid-template-columns: repeat(auto-fill, minmax(min(200px, calc(50% - ${space.sm})), 1fr));
 		gap: ${space.md};
-		padding: 0 ${space.md} ${space.md};
+		/* The bar above is flush, so the grid keeps its own space from it */
+		padding: ${space.md};
 	`,
 );
 
@@ -48,6 +49,7 @@ export default class Games extends View {
 
 		this.toolbar = new GamesToolbar({
 			appendTo: this,
+			variant: 'bar',
 			initial: this.filters,
 			onFilterChange: change => this.applyFilterChange(change),
 		});

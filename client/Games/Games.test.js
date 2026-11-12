@@ -18,6 +18,14 @@ describe('Games', () => {
 		window.happyDOM.setURL('about:blank');
 	});
 
+	test('the header is a bar, as on the game page', async () => {
+		getGames.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: {} });
+
+		view = new Games({ appendTo: document.body });
+
+		expect(view.toolbar.elem.classList.contains('variant-bar')).toBe(true);
+	});
+
 	test('a failed load says it failed, why, and offers Try again', async () => {
 		getGames.mockResolvedValue({ status: 'error', response: { ok: false, status: 500 }, body: { error: 'disk full' } });
 
