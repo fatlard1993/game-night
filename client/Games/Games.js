@@ -8,7 +8,15 @@ import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
 import GameDialog from './GameDialog/GameDialog';
 import confirmDeleteGame from './confirmDeleteGame';
-import { searchGames, gameMatchesFilters, asNumber, tagCounts, filtersFromUrl, filtersToQuery } from './gameModel';
+import {
+	searchGames,
+	gameMatchesFilters,
+	asNumber,
+	tagCounts,
+	filtersFromUrl,
+	filtersToQuery,
+	describeFilters,
+} from './gameModel';
 
 const CardGrid = styled(
 	Component,
@@ -126,7 +134,7 @@ export default class Games extends View {
 				appendTo: this.content,
 				icon: hasAnyGames ? 'magnifying-glass' : 'dice',
 				message: hasAnyGames
-					? 'No games match the current search/filters'
+					? `No games match ${describeFilters(this.filters)}`
 					: `No games yet .. ${context.admin ? 'Add them with the + button above' : 'Log in with the padlock above to add some'}`,
 			});
 
@@ -152,7 +160,9 @@ export default class Games extends View {
 	renderError() {
 		new EmptyState({
 			appendTo: this.content,
-			message: `Could not load the library: ${failureReason(this.games)}`,
+			icon: 'triangle-exclamation',
+			title: 'Could not load the library',
+			message: failureReason(this.games),
 			action: {
 				textContent: 'Try again',
 				onPointerPress: () => {

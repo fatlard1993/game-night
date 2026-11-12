@@ -262,3 +262,16 @@ export const gameMatchesFilters = (game, { players, maxTime, setting, maxComplex
 
 	return true;
 };
+
+// What the library is being narrowed by, in words, for the "nothing matches" state: `"chess", 4 players, tagged coop`
+export const describeFilters = ({ search, setting, players, maxTime, maxComplexity, tags } = {}) =>
+	[
+		...[...(search?.chips || []), search?.text?.trim()].filter(Boolean).map(term => `"${term}"`),
+		setting && `setting ${setting}`,
+		players && `${players} ${Number(players) === 1 ? 'player' : 'players'}`,
+		maxTime && `under ${maxTime} min`,
+		maxComplexity && `complexity up to ${maxComplexity}`,
+		tags?.length > 0 && `tagged ${tags.join(' or ')}`,
+	]
+		.filter(Boolean)
+		.join(', ');

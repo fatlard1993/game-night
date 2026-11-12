@@ -6,6 +6,7 @@ import {
 	MAX_UPLOAD_BYTES,
 	asNumber,
 	coverIcon,
+	describeFilters,
 	filtersFromUrl,
 	filtersToQuery,
 	gameMatchesFilters,
@@ -279,5 +280,25 @@ describe('relatedGames', () => {
 	test('games with no overlap are excluded and the limit applies', () => {
 		expect(relatedGames(library.c, library, 1)).toEqual([]);
 		expect(relatedGames(library.a, library, 1).map(game => game.name)).toEqual(['Spades']);
+	});
+});
+
+describe('describeFilters', () => {
+	test('names every term and filter in force', () => {
+		expect(
+			describeFilters({
+				search: { chips: ['chess'], text: ' dice ' },
+				setting: 'Table',
+				players: '4',
+				maxTime: '30',
+				maxComplexity: 'Medium',
+				tags: ['coop', 'party'],
+			}),
+		).toBe('"chess", "dice", setting Table, 4 players, under 30 min, complexity up to Medium, tagged coop or party');
+	});
+
+	test('leaves out what is blank', () => {
+		expect(describeFilters({ search: { chips: [], text: '' }, players: '1', tags: [] })).toBe('1 player');
+		expect(describeFilters()).toBe('');
 	});
 });
