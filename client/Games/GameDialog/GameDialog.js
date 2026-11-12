@@ -10,7 +10,6 @@ export default class GameDialog extends FormDialog {
 	static schema = {
 		game: {},
 		onDeleted: {},
-		size: { default: 'large' },
 		FormComponent: { default: GameForm },
 	};
 

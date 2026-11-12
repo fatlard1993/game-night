@@ -88,6 +88,21 @@ describe('GameDialog delete', () => {
 	});
 });
 
+describe('GameDialog size', () => {
+	afterEach(() => {
+		for (const elem of document.querySelectorAll('dialog')) elem.remove();
+	});
+
+	// A form hugs its content, however long, rather than filling the screen
+	test('is fit, as a form is', async () => {
+		const dialog = new GameDialog();
+
+		await opened();
+
+		expect(dialog.elem.classList.contains('size-fit')).toBe(true);
+	});
+});
+
 describe('GameDialog save', () => {
 	afterEach(() => {
 		for (const elem of document.querySelectorAll('dialog')) elem.remove();
