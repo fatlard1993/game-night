@@ -44,3 +44,22 @@ describe('GamesToolbar log out', () => {
 		expect(context.admin).toBe(false);
 	});
 });
+
+describe('GamesToolbar add menu', () => {
+	test('its labels are sentence case and start with a verb', () => {
+		context.admin = true;
+
+		const toolbar = new GamesToolbar({ appendTo: document.body, onFilterChange: () => {} });
+
+		toolbar.addButton.elem.click();
+
+		expect(toolbar.addButton.elem.title).toBe('Add a game');
+		expect(toolbar.addMenu.options.items.map(item => item.textContent)).toEqual([
+			'Add a game',
+			'Import a Steam library',
+		]);
+
+		toolbar.destroy();
+		context.admin = false;
+	});
+});

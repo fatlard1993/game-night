@@ -199,7 +199,7 @@ export default class Games extends View {
 					]
 				: []),
 			{
-				textContent: 'Add Game',
+				textContent: 'Add a game',
 				onPointerPress: () => new GameDialog(),
 			},
 		];

@@ -164,14 +164,14 @@ export default class GamesToolbar extends styled(
 		this.addButton = new Button({
 			appendTo: this.elem,
 			icon: 'plus',
-			title: 'Add Game',
+			title: 'Add a game',
 			onPointerPress: event => {
 				event.preventDefault();
 				event.stopPropagation();
 
 				this.addMenu.options.items = [
-					{ textContent: 'Add Game', onPointerPress: () => new GameDialog() },
-					{ textContent: 'Import Steam Library', onPointerPress: () => new SteamImportDialog() },
+					{ textContent: 'Add a game', onPointerPress: () => new GameDialog() },
+					{ textContent: 'Import a Steam library', onPointerPress: () => new SteamImportDialog() },
 				];
 
 				this.addMenu.open({ x: event.clientX, y: event.clientY });
