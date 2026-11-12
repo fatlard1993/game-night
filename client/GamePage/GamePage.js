@@ -142,6 +142,9 @@ export default class GamePage extends View {
 	build() {
 		this.header = new Toolbar({ appendTo: this, variant: 'bar', wrap: false });
 		this.content = new Content({ appendTo: this, column: true });
+
+		// Until both fetches land; renderContent empties it
+		new EmptyState({ appendTo: this.content, loading: true });
 	}
 
 	async load() {

@@ -20,6 +20,19 @@ const buttons = (root, selector = 'button') => [...root.querySelectorAll(selecto
 
 const button = (root, label) => buttons(root).find(elem => elem.textContent.trim() === label);
 
+test('shows a loading EmptyState until the game arrives', async () => {
+	const page = new GamePage({ appendTo: document.body, id: 'g1' });
+
+	expect(page.content.elem.querySelector('.loading')).not.toBeNull();
+
+	await settled();
+
+	expect(page.content.elem.querySelector('.loading')).toBeNull();
+	expect(page.header.options.heading).toBe('Chess');
+
+	page.destroy();
+});
+
 describe('GamePage', () => {
 	let page;
 
