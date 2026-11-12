@@ -124,6 +124,7 @@ export default class MultiselectFilter extends styled.Popover(
 				appendTo: this,
 				addClass: 'filterSearch',
 				type: 'search',
+				'aria-label': `Filter ${this.options.label}`,
 				placeholder: `Filter ${this.options.label}...`,
 				onInput: ({ value }) => {
 					this._query = value.toLowerCase();
