@@ -20,6 +20,7 @@ import {
 import { getGame, getGames, updateGame, gameFileUrl } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
+import { gamePath } from '../paths';
 import Markdown from '../Markdown';
 import { safeUrl } from '../safeUrl';
 import GameDialog from '../Games/GameDialog/GameDialog';
@@ -392,7 +393,7 @@ export default class GamePage extends View {
 						const [coverId] = gameImageIds(other);
 
 						return new RelatedCard({
-							onPointerPress: () => navigate(`/games/${other.id}`),
+							onPointerPress: () => navigate(gamePath(other.id)),
 							append: [
 								coverId
 									? new Elem({ tag: 'img', src: gameFileUrl(other.id, coverId), alt: other.name, loading: 'lazy' })

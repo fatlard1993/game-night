@@ -2,6 +2,7 @@ import { FormDialog, failureReason } from '@vanilla-bean/components';
 
 import { createGame, updateGame, deleteGame, uploadGameFile, deleteGameFile, getGames } from '../../api';
 import { navigate } from '../../navigate';
+import { gamePath } from '../../paths';
 import { parseLinks, otherGameNames, asNumber, orderedRange } from '../gameModel';
 
 import GameForm from './GameForm';
@@ -101,7 +102,7 @@ export default class GameDialog extends FormDialog {
 		}
 
 		// A new game lands on its page, ready for rules to be written
-		if (!isEdit) navigate(`/games/${id}`);
+		if (!isEdit) navigate(gamePath(id));
 
 		return true;
 	}

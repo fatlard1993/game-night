@@ -3,6 +3,7 @@ import { View, Component, Content, ContextMenu, EmptyState, styled, failureReaso
 import { getGames } from '../api';
 import { navigate } from '../navigate';
 import context from '../context';
+import { paths, gamePath } from '../paths';
 
 import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
@@ -45,7 +46,7 @@ export default class Games extends View {
 	build() {
 		// Seed from the URL so a shared/bookmarked filtered view restores exactly
 		this.filters = filtersFromUrl();
-		context.libraryUrl = `/games${filtersToQuery(this.filters)}`;
+		context.libraryUrl = `${paths.library}${filtersToQuery(this.filters)}`;
 
 		this.toolbar = new GamesToolbar({
 			appendTo: this,
@@ -95,7 +96,7 @@ export default class Games extends View {
 		window.history.replaceState(null, '', `${window.location.pathname}${query}`);
 
 		// Remembered so a game page's back arrow returns to this filtered view
-		context.libraryUrl = `/games${query}`;
+		context.libraryUrl = `${paths.library}${query}`;
 
 		// Controls can emit during their initial setup, before the library has loaded
 		if (this.loaded) this.renderContent();
@@ -150,7 +151,7 @@ export default class Games extends View {
 					new GameCard({
 						game,
 						attributes: { 'data-game-id': game.id },
-						onPointerPress: () => navigate(`/games/${game.id}`),
+						onPointerPress: () => navigate(gamePath(game.id)),
 						onTagPress: tag => this.toolbar.addTagFilter(tag),
 					}),
 			),
