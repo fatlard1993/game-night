@@ -67,6 +67,23 @@ describe('GamePage', () => {
 		expect(trash.classList.contains('variant-flat')).toBe(true);
 	});
 
+	test('on a phone Edit details is an icon, named by its tooltip', async () => {
+		const matchMedia = window.matchMedia;
+
+		window.matchMedia = query => ({ ...matchMedia.call(window, query), matches: true, addEventListener() {}, removeEventListener() {} });
+		page.renderContent();
+		window.matchMedia = matchMedia;
+
+		await settled();
+
+		const details = buttons(page.header.elem)[1];
+		const name = document.getElementById(details.getAttribute('aria-labelledby'));
+
+		expect(details.childNodes.length).toBe(1);
+		expect(details.classList.contains('icon')).toBe(true);
+		expect(name.textContent).toBe('Edit details');
+	});
+
 	test('the editor ends with Cancel, quiet, then Save, filled', async () => {
 		await startEditing();
 

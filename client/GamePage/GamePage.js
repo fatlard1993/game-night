@@ -256,14 +256,33 @@ export default class GamePage extends View {
 					this.renderContent();
 				},
 			});
-			new Button({
+			const details = new Button({
 				appendTo: this.header,
 				variant: 'flat',
 				icon: 'gear',
 				textContent: 'Edit details',
-				title: 'Edit metadata, tags, links & files',
 				onPointerPress: () => new GameDialog({ game, onDeleted: () => navigate(context.libraryUrl) }),
 			});
+
+			// On a phone the words would cut the game's name in the bar to a few letters; there it is an icon with a
+			// tooltip, which names it
+			const phone = window.matchMedia(theme.media.phone);
+			const fit = () => {
+				if (phone.matches) {
+					details.options.title = '';
+					details.options.textContent = '';
+					details.options.tooltip = 'Edit details';
+				} else {
+					details.options.tooltip = false;
+					details.options.textContent = 'Edit details';
+					details.options.title = 'Edit metadata, tags, links & files';
+				}
+			};
+
+			fit();
+			phone.addEventListener('change', fit);
+			// The header is rebuilt on every repaint; only the newest button listens
+			this.replaceCleanup('editDetailsFit', () => phone.removeEventListener('change', fit));
 			new Button({
 				appendTo: this.header,
 				variant: 'flat',
