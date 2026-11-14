@@ -31,10 +31,6 @@ import MarkdownEditor from './MarkdownEditor';
 
 // click isn't in the default event set; the back link wants full click semantics
 // so middle/modified clicks open in a new tab while plain clicks stay in-app
-class ClickLink extends Link {
-	static events = ['click'];
-}
-
 const Body = styled(
 	Component,
 	({ space }) => `
@@ -186,20 +182,14 @@ export default class GamePage extends View {
 		this.renderContent();
 	}
 
-	// The back arrow is a real link: its href tracks the remembered filtered-library URL,
-	// so middle/modified clicks open it in a new tab while plain clicks stay in-app
+	// The back arrow is a real link: its href tracks the remembered filtered-library URL, and the router takes a plain
+	// click on it in-app
 	_backLink(options) {
-		return new ClickLink({
+		return new Link({
 			variant: 'button',
 			href: context.subscriber('libraryUrl', url => url),
 			title: 'Back to library',
 			tooltip: false,
-			onClick: event => {
-				if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-				event.preventDefault();
-				navigate(context.libraryUrl);
-			},
 			...options,
 		});
 	}

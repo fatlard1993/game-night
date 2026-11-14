@@ -20,22 +20,3 @@ const router = new Router({
 registerRouter(router);
 
 export default router;
-
-// TEMPORARY, until the library's Router catches these itself in history mode: a plain click on a same-site link
-// is routed in-app instead of reloading the page. Middle, modified and _blank clicks are left to the browser, so they
-// still open a new tab. Delete this block when the library does it.
-document.addEventListener('click', event => {
-	if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-		return;
-
-	const anchor = event.target.closest?.('a[href]');
-
-	if (!anchor || (anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return;
-
-	const url = new URL(anchor.href);
-
-	if (url.origin !== window.location.origin) return;
-
-	event.preventDefault();
-	router.path = `${url.pathname}${url.search}${url.hash}`;
-});
