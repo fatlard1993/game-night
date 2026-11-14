@@ -7,14 +7,22 @@ describe('MarkdownEditor', () => {
 
 	afterEach(() => editor?.destroy());
 
-	test('the textarea is named by a label tied to it, not only its placeholder', () => {
+	test("the textarea is named by its pane's heading, not only its placeholder", () => {
 		editor = new MarkdownEditor({ appendTo: document.body, label: 'Rules', value: '', placeholder: 'How to play' });
 
 		const textarea = editor.elem.querySelector('textarea');
-		const label = editor.elem.querySelector(`label[for="${textarea.id}"]`);
+		const heading = document.getElementById(textarea.getAttribute('aria-labelledby'));
 
-		expect(textarea.id).toBeTruthy();
-		expect(label.textContent).toBe('Rules (markdown)');
+		expect(heading.getAttribute('role')).toBe('heading');
+		expect(heading.textContent).toBe('Rules');
+	});
+
+	test('both panes are headed by a SectionLabel', () => {
+		editor = new MarkdownEditor({ appendTo: document.body, label: 'Rules', value: '' });
+
+		const headings = [...editor.elem.querySelectorAll('[role="heading"]')].map(heading => heading.textContent);
+
+		expect(headings).toEqual(['Rules', 'Preview']);
 	});
 
 	test('value is what has been typed', () => {

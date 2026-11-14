@@ -1,4 +1,4 @@
-import { Component, Input, Label, SectionLabel, styled, debounce } from '@vanilla-bean/components';
+import { Component, Input, SectionLabel, styled, debounce } from '@vanilla-bean/components';
 
 import Markdown from '../Markdown';
 
@@ -18,17 +18,6 @@ const Pane = styled.Component`
 	display: flex;
 	flex-direction: column;
 `;
-
-// The label holds its textarea and fills the pane, so the textarea stretches to the preview's height beside it
-const Field = styled(
-	Label,
-	() => `
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		margin: 0;
-	`,
-);
 
 const Editor = styled(
 	Input,
@@ -72,18 +61,24 @@ export default class MarkdownEditor extends Container {
 	build() {
 		this.preview = new Preview({ md: this.options.value || '' });
 
+		// Both panes are headed alike; the textarea takes its name from its pane's heading
+		const heading = new SectionLabel({ textContent: this.options.label });
+
+		heading.elem.id = `${heading.uniqueId}-heading`;
+
 		this.editor = new Editor({
 			tag: 'textarea',
 			value: this.options.value || '',
 			placeholder: this.options.placeholder || 'Markdown supported...',
+			attributes: { 'aria-labelledby': heading.elem.id },
 			onInput: debounce(({ value }) => {
 				this.preview.options.md = value;
 			}, 300),
 		});
 
-		// The textarea is named by a Label tied to it; the preview is a group under its heading
+
 		this.append(
-			new Pane({ append: new Field({ label: `${this.options.label} (markdown)` }, this.editor) }),
+			new Pane({ append: [heading, this.editor] }),
 			new Pane({ append: [new SectionLabel({ textContent: 'Preview' }), this.preview] }),
 		);
 	}
