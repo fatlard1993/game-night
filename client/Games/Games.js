@@ -1,9 +1,8 @@
 import { View, Component, Content, ContextMenu, EmptyState, styled, failureReason } from '@vanilla-bean/components';
 
 import { getGames } from '../api';
-import { navigate } from '../navigate';
 import context from '../context';
-import { paths, gamePath } from '../paths';
+import { paths } from '../paths';
 
 import GamesToolbar from './GamesToolbar';
 import GameCard from './GameCard';
@@ -151,7 +150,6 @@ export default class Games extends View {
 					new GameCard({
 						game,
 						attributes: { 'data-game-id': game.id },
-						onPointerPress: () => navigate(gamePath(game.id)),
 						onTagPress: tag => this.toolbar.addTagFilter(tag),
 					}),
 			),
@@ -177,14 +175,15 @@ export default class Games extends View {
 	}
 
 	showContextMenu(event) {
+		// Every item here writes; without a session the menu would offer nothing the server accepts, so the browser's own
+		// menu (open the card's link in a new tab) stays
+		if (!context.admin) return;
+
 		event.preventDefault();
 		event.stopPropagation();
 
 		const gameId = event.target.closest?.('[data-game-id]')?.dataset.gameId;
 		const game = this.gamesById()[gameId];
-
-		// Every item here writes; without a session the menu would offer nothing the server accepts
-		if (!context.admin) return;
 
 		this.contextMenu.options.items = [
 			...(game

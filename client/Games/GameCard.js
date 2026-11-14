@@ -1,6 +1,7 @@
 import { Card, Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../api';
+import { gamePath } from '../paths';
 import { coverIcon, gameImageIds, gameMetaLabel } from './gameModel';
 
 // The cover runs to the card's edges; only the body below it is padded
@@ -88,7 +89,7 @@ const Meta = styled(
 );
 
 // Tag presses add a search chip instead of opening the game; swallow the click
-// the card's own onPointerPress would otherwise receive. Returns the pressed tag.
+// the card's link would otherwise follow. Returns the pressed tag.
 const swallowTagEvent = event => {
 	const tag = event.target.closest('li[data-value]')?.dataset.value;
 
@@ -105,6 +106,11 @@ export default class GameCard extends CoverCard {
 		game: {},
 		onTagPress: {},
 	};
+
+	// The card is a link to its game, so middle and modified clicks open it in a new tab and it shows its address
+	static prepareOptions(options) {
+		return { ...options, tag: 'a', href: gamePath(options.game.id) };
+	}
 
 	build() {
 		const { game } = this.options;

@@ -55,4 +55,21 @@ describe('Games', () => {
 
 		expect(view.content.elem.textContent).toContain('No games match "zzz", 4 players');
 	});
+
+	test('a game card is a link to its game', async () => {
+		getGames.mockResolvedValue({
+			status: 'success',
+			response: { ok: true, status: 200 },
+			body: { 'g 1': { id: 'g 1', name: 'Chess' } },
+		});
+
+		view = new Games({ appendTo: document.body });
+
+		await settled();
+
+		const card = view.content.elem.querySelector('[data-game-id="g 1"]');
+
+		expect(card.tagName).toBe('A');
+		expect(card.getAttribute('href')).toBe('/games/g%201');
+	});
 });
