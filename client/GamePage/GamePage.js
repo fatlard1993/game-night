@@ -183,10 +183,10 @@ export default class GamePage extends View {
 	}
 
 	// The back arrow is a real link: its href tracks the remembered filtered-library URL, and the router takes a plain
-	// click on it in-app
+	// click on it in-app. It is flat: an icon-only control, never the page's main action
 	_backLink(options) {
 		return new Link({
-			variant: 'button',
+			variant: 'flat',
 			href: context.subscriber('libraryUrl', url => url),
 			title: 'Back to library',
 			tooltip: false,
@@ -213,7 +213,8 @@ export default class GamePage extends View {
 				title: failed ? 'Could not load this game' : 'Game not found',
 				message: failed ? failureReason(this.game) : 'It may have been deleted, or the link is off',
 				action: failed ? { textContent: 'Try again', onPointerPress: () => this.game.refetch?.() } : undefined,
-				append: this._backLink({ textContent: 'Back to library' }),
+				// Filled only when it's the one way on; beside Try again it steps back
+				append: this._backLink({ textContent: 'Back to library', variant: failed ? 'flat' : 'button' }),
 			});
 
 			return;

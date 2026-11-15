@@ -33,6 +33,45 @@ test('shows a loading EmptyState until the game arrives', async () => {
 	page.destroy();
 });
 
+test('a failed load offers Try again, filled, with the way back flat beside it', async () => {
+	getGame.mockImplementationOnce(async () => ({
+		status: 'error',
+		response: { ok: false, status: 500 },
+		body: { error: 'store locked' },
+	}));
+
+	const page = new GamePage({ appendTo: document.body, id: 'g1' });
+
+	await settled();
+
+	const back = page.content.elem.querySelector('a');
+
+	expect(back.textContent.trim()).toBe('Back to library');
+	expect(back.classList.contains('variant-flat')).toBe(true);
+	expect(button(page.content.elem, 'Try again').classList.contains('variant-flat')).toBe(false);
+
+	page.destroy();
+});
+
+test('a game that is gone offers only the way back, filled', async () => {
+	getGame.mockImplementationOnce(async () => ({
+		status: 'error',
+		response: { ok: false, status: 404 },
+		body: { error: 'not found' },
+	}));
+
+	const page = new GamePage({ appendTo: document.body, id: 'g1' });
+
+	await settled();
+
+	const back = page.content.elem.querySelector('a');
+
+	expect(back.textContent.trim()).toBe('Back to library');
+	expect(back.classList.contains('variant-flat')).toBe(false);
+
+	page.destroy();
+});
+
 describe('GamePage', () => {
 	let page;
 
@@ -67,10 +106,22 @@ describe('GamePage', () => {
 		expect(trash.classList.contains('variant-flat')).toBe(true);
 	});
 
+	test('the back arrow, an icon alone, is flat', () => {
+		const back = page.header.elem.querySelector('a');
+
+		expect(back.title).toBe('Back to library');
+		expect(back.classList.contains('variant-flat')).toBe(true);
+	});
+
 	test('on a phone Edit details is an icon, named by its tooltip', async () => {
 		const matchMedia = window.matchMedia;
 
-		window.matchMedia = query => ({ ...matchMedia.call(window, query), matches: true, addEventListener() {}, removeEventListener() {} });
+		window.matchMedia = query => ({
+			...matchMedia.call(window, query),
+			matches: true,
+			addEventListener() {},
+			removeEventListener() {},
+		});
 		page.renderContent();
 		window.matchMedia = matchMedia;
 
