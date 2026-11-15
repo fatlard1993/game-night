@@ -48,10 +48,6 @@ const StyledMarkdown = styled(
 			margin: ${space.sm} 0 ${space.md};
 		}
 
-		a {
-			color: ${colors.light(colors.blue)};
-		}
-
 		img {
 			max-width: 100%;
 			border-radius: ${radius.md};
