@@ -6,6 +6,8 @@ export default class MultiselectFilter extends styled.Popover(
 	({ colors, fontSize, space }) => `
 		display: flex;
 		flex-direction: column;
+		/* Hung from its button, a popover is as wide as its rows and as tall as the room below: these keep it a menu's size */
+		max-width: 260px;
 		padding: 0;
 		overflow: hidden;
 		transform: scaleY(0);
@@ -39,6 +41,7 @@ export default class MultiselectFilter extends styled.Popover(
 		}
 
 		& .filterList {
+			max-height: 276px;
 			overflow-y: auto;
 			flex: 1;
 		}
@@ -78,7 +81,7 @@ export default class MultiselectFilter extends styled.Popover(
 			flex-shrink: 0;
 		}
 	`,
-	{ autoOpen: false, maxWidth: 260, maxHeight: 360 },
+	{ autoOpen: false, maxWidth: 260 },
 ) {
 	static schema = {
 		// data: the emit option collides with Component's emit() method
@@ -110,12 +113,10 @@ export default class MultiselectFilter extends styled.Popover(
 				event.preventDefault();
 				event.stopPropagation();
 
-				// The button may sit scrolled out of a filter row that overflows; the popover opens under where it shows
+				// The button may sit scrolled out of a filter row that overflows; the popover hangs under where it shows
 				this.button.elem.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
-				const rect = this.button.elem.getBoundingClientRect();
-
-				this.open({ x: rect.left + rect.width / 2, y: rect.bottom + 6 });
+				this.open({ anchor: this.button });
 			},
 		});
 
@@ -259,6 +260,15 @@ export default class MultiselectFilter extends styled.Popover(
 
 		super.open(options);
 
-		if (this.search) requestAnimationFrame(() => this.search.elem.focus());
+		if (this.isOpen && this.search) requestAnimationFrame(() => this.search.elem.focus());
+	}
+
+	// Closed from inside (Escape, Done, the button again), the keyboard goes back to the button
+	close() {
+		const hadFocus = this.elem.contains(document.activeElement);
+
+		super.close();
+
+		if (hadFocus) this.button.elem.focus();
 	}
 }
