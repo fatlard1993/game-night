@@ -62,4 +62,21 @@ describe('GamesToolbar add menu', () => {
 		toolbar.destroy();
 		context.admin = false;
 	});
+
+	test('it hangs from the add button, which toggles it', () => {
+		context.admin = true;
+
+		const toolbar = new GamesToolbar({ appendTo: document.body, onFilterChange: () => {} });
+
+		toolbar.addButton.elem.click();
+
+		expect(toolbar.addButton.elem.getAttribute('aria-expanded')).toBe('true');
+
+		toolbar.addButton.elem.click();
+
+		expect(toolbar.addButton.elem.getAttribute('aria-expanded')).toBe('false');
+
+		toolbar.destroy();
+		context.admin = false;
+	});
 });

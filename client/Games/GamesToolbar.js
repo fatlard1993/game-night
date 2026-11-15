@@ -174,7 +174,7 @@ export default class GamesToolbar extends styled(
 					{ textContent: 'Import a Steam library', onPointerPress: () => new SteamImportDialog() },
 				];
 
-				this.addMenu.open({ x: event.clientX, y: event.clientY });
+				this.addMenu.open({ anchor: this.addButton });
 			},
 		});
 
@@ -184,7 +184,7 @@ export default class GamesToolbar extends styled(
 			onPointerPress: () => (context.admin ? this.logOut() : new LoginDialog()),
 		});
 
-		this.addMenu = new ContextMenu({ appendTo: this, reticle: false });
+		this.addMenu = new ContextMenu({ appendTo: this });
 
 		this._showSession(context.admin);
 
