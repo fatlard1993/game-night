@@ -30,15 +30,13 @@ const FileRow = styled(
 export default class GameForm extends Form {
 	static schema = {
 		gameId: {},
-		existingTags: {},
-		existingRelated: {},
 		existingFiles: {},
 	};
 
 	constructor(options = {}) {
 		// description and rules are edited on the game's page (markdown editor), and the Steam fields by the
 		// import's background pass; none is edited here, and sending a stale copy back would clobber theirs
-		const { tags, related, files, id, description, rules, steamAppId, steamEnriched, ...gameData } = options.data || {};
+		const { files, id, description, rules, steamAppId, steamEnriched, ...gameData } = options.data || {};
 
 		super({
 			...options,
@@ -52,10 +50,10 @@ export default class GameForm extends Form {
 				playTimeMax: '',
 				...gameData,
 				links: serializeLinks(options.data?.links),
+				tags: Array.isArray(gameData.tags) ? [...gameData.tags] : [],
+				related: Array.isArray(gameData.related) ? [...gameData.related] : [],
 			},
 			gameId: id,
-			existingTags: Array.isArray(tags) ? tags : [],
-			existingRelated: Array.isArray(related) ? related : [],
 			existingFiles: files || {},
 		});
 	}
@@ -100,18 +98,12 @@ export default class GameForm extends Form {
 					tag: 'textarea',
 					placeholder: 'One per line: https://... or Label | https://...',
 				},
+				{ key: 'tags', InputComponent: TagList },
+				{ key: 'related', label: 'Related Games', InputComponent: RelatedGamesInput },
 			],
 		});
 
 		super.build();
-
-		this.tagList = new TagList({ value: this.options.existingTags });
-
-		this.append(new Label({ label: 'Tags' }, this.tagList));
-
-		this.relatedList = new RelatedGamesInput({ value: this.options.existingRelated });
-
-		this.append(new Label({ label: 'Related Games' }, this.relatedList));
 
 		this._buildFilesSection();
 	}
@@ -119,15 +111,7 @@ export default class GameForm extends Form {
 	// Fills in once the dialog's game-list fetch resolves; a name typed before then just won't
 	// autocomplete/validate yet.
 	setGameNames(gameNames) {
-		this.relatedList.setOptions({ gameNames });
-	}
-
-	getTags() {
-		return [...this.tagList.options.value];
-	}
-
-	getRelated() {
-		return [...this.relatedList.options.value];
+		this.inputElements.related.setOptions({ gameNames });
 	}
 
 	getPendingFiles() {

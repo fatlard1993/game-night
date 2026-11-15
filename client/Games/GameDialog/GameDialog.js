@@ -65,8 +65,6 @@ export default class GameDialog extends FormDialog {
 			playTimeMin: timeLow ?? '',
 			playTimeMax: timeHigh ?? '',
 			links: parseLinks(links),
-			related: this.form.getRelated(),
-			tags: this.form.getTags(),
 		};
 
 		// Recomputed here (not the constructor's snapshot): a failed Add may have already created

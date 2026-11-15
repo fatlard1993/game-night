@@ -139,6 +139,30 @@ describe('GameDialog save', () => {
 			expect(body).not.toHaveProperty(key);
 	});
 
+	test('tags and related games are form fields: their changes are in the form data, and saved from it', async () => {
+		updateGame.mockReset();
+		updateGame.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: { id: 'g1' } });
+
+		const dialog = new GameDialog({ game: { id: 'g1', name: 'Chess', tags: ['strategy'], related: ['Go'] } });
+
+		await opened();
+
+		const { tags, related } = dialog.form.inputElements;
+
+		expect(tags.options.value).toEqual(['strategy']);
+		expect(related.options.value).toEqual(['Go']);
+
+		tags._addTag('classic');
+
+		expect(dialog.form.options.data.tags).toEqual(['strategy', 'classic']);
+		expect(await dialog.save()).toBe(true);
+
+		const [, { body }] = updateGame.mock.calls[0];
+
+		expect(body.tags).toEqual(['strategy', 'classic']);
+		expect(body.related).toEqual(['Go']);
+	});
+
 	test('an upload failing after the game saved says so beside the reason', async () => {
 		updateGame.mockResolvedValue({ status: 'success', response: { ok: true, status: 200 }, body: { id: 'g1' } });
 		uploadGameFile.mockResolvedValue({
