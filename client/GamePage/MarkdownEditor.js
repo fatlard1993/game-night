@@ -21,11 +21,12 @@ const Pane = styled.Component`
 
 const Editor = styled(
 	Input,
-	({ fontSize }) => `
+	({ fonts, fontSize }) => `
 		flex: 1;
 		width: 100%;
 		min-height: 240px;
 		resize: vertical;
+		font-family: ${fonts.family.code};
 		font-size: ${fontSize.sm};
 	`,
 );
