@@ -150,7 +150,8 @@ export default class GameCard extends CoverCard {
 				? new Elem({
 						tag: 'img',
 						src: gameFileUrl(game.id, coverImageId),
-						alt: game.name,
+						// The card's name beside it already says whose cover it is
+						alt: '',
 						attributes: { loading: 'lazy', decoding: 'async' },
 					})
 				: new Icon({ icon: coverIcon(game) }),
