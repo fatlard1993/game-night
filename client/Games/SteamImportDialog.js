@@ -5,7 +5,8 @@ import { getSteamSettings, importSteamLibrary } from '../api';
 export default class SteamImportDialog extends Dialog {
 	constructor(options = {}) {
 		super({
-			size: 'standard',
+			// A form and a status line that grows: as tall as they are, not a fixed box
+			size: 'fit',
 			header: 'Import Steam Library',
 			buttons: ['Cancel', 'Import'],
 			onButtonPress: async ({ button, closeDialog }) => {

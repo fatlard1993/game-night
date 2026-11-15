@@ -16,6 +16,14 @@ describe('SteamImportDialog', () => {
 		for (const elem of document.querySelectorAll('dialog')) elem.remove();
 	});
 
+	test('it is as tall as its form and status line', async () => {
+		const dialog = new SteamImportDialog();
+
+		await opened();
+
+		expect(dialog.elem.classList.contains('size-fit')).toBe(true);
+	});
+
 	test('Cancel comes before Import', async () => {
 		const dialog = new SteamImportDialog();
 
