@@ -1,34 +1,62 @@
-import { Card, Component, Elem, Icon, TagList, styled } from '@vanilla-bean/components';
+import { Card, Component, Elem, Icon, List, Tag, styled } from '@vanilla-bean/components';
 
 import { gameFileUrl } from '../api';
-import { gamePath } from '../paths';
+import { gamePath, tagSearchPath } from '../paths';
 import { coverIcon, gameImageIds, gameMetaLabel } from './gameModel';
 
-// The cover runs to the card's edges; only the body below it is padded
+// The cover runs to the card's edges; only the body below it is padded. The card isn't itself a link, since its tags
+// are links of their own and an <a> can't hold another: its name is the link to the game, stretched over the whole
+// card, and the tags sit above that. So the card hovers and shows focus as a linked Card does, for its name's link.
 const CoverCard = styled(
 	Card,
-	({ colors }) => `
+	({ colors, focusRing, space }) => `
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		padding: 0;
 		overflow: hidden;
+		cursor: pointer;
+
+		&:hover, &:has(a.name:focus-visible) {
+			background-color: ${colors.alpha(colors.white, 0.09)};
+		}
+
+		&:has(a.name:focus-visible) {
+			${focusRing()}
+		}
 
 		/* Skip layout/paint for off-screen cards, the big win for a 150+ card grid.
 		   'auto' height remembers each card's real size once rendered, so the scrollbar stays stable. */
 		content-visibility: auto;
 		contain-intrinsic-size: auto 290px;
 
-		/* readOnly TagList disables pointer events, tags here are search shortcuts */
-		ul.readOnly {
-			pointer-events: auto;
+		/* Each tag is a link to its search, above the name's link that covers the card */
+		ul.tags {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: ${space.xs};
+			min-width: 0;
+			margin: 0;
 
+			/* Only as tall as its tag */
 			li {
+				display: flex;
+				max-width: 100%;
+			}
+
+			a {
 				cursor: pointer;
+				color: inherit;
+				text-decoration: none;
 
 				/* Long tags clamp to the card width on narrow columns; inline-block
 				   (over the Tag default inline-flex) lets text-overflow apply */
 				display: inline-block;
 				max-width: 100%;
+				box-sizing: border-box;
 				overflow: hidden;
 				text-overflow: ellipsis;
 
@@ -73,11 +101,24 @@ const Body = styled(
 	`,
 );
 
+// The link to the game; its ::after covers the card, so a press anywhere on it (a middle press too) opens the game
 const Name = styled.Component`
 	font-weight: bold;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	color: inherit;
+	text-decoration: none;
+
+	&:focus-visible {
+		outline: none;
+	}
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
 `;
 
 const Meta = styled(
@@ -88,29 +129,16 @@ const Meta = styled(
 	`,
 );
 
-// Tag presses add a search chip instead of opening the game; swallow the click
-// the card's link would otherwise follow. Returns the pressed tag.
-const swallowTagEvent = event => {
-	const tag = event.target.closest('li[data-value]')?.dataset.value;
-
-	if (!tag) return;
-
-	event.preventDefault();
-	event.stopPropagation();
-
-	return tag;
-};
+// A plain press on a tag adds it to the library's search in place; a press for a new tab is the browser's
+const plainPress = event => event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 
 export default class GameCard extends CoverCard {
 	static schema = {
 		game: {},
 		onTagPress: {},
+		// tag => the address of the library searched for it; the tag alone unless said
+		tagHref: {},
 	};
-
-	// The card is a link to its game, so middle and modified clicks open it in a new tab and it shows its address
-	static prepareOptions(options) {
-		return { ...options, tag: 'a', href: gamePath(options.game.id) };
-	}
 
 	build() {
 		const { game } = this.options;
@@ -130,22 +158,43 @@ export default class GameCard extends CoverCard {
 
 		this.body = new Body({ appendTo: this });
 
-		new Name({ appendTo: this.body, textContent: game.name, title: game.name });
+		// The link to the game, so middle and modified clicks open it in a new tab and it shows its address
+		new Name({
+			tag: 'a',
+			addClass: 'name',
+			appendTo: this.body,
+			href: gamePath(game.id),
+			textContent: game.name,
+			title: game.name,
+		});
 
 		const meta = gameMetaLabel(game);
 
 		if (meta) new Meta({ appendTo: this.body, textContent: meta });
 
 		if (game.tags?.length > 0) {
-			this.tagList = new TagList({
-				appendTo: this.body,
-				readOnly: true,
-				value: game.tags,
-				onClick: event => {
-					const tag = swallowTagEvent(event);
+			const { tagHref = tagSearchPath } = this.options;
 
-					if (tag) this.options.onTagPress?.(tag);
-				},
+			this.tags = new List({
+				noStyle: true,
+				addClass: 'tags',
+				appendTo: this.body,
+				'aria-label': 'Tags',
+				items: game.tags.map(tag => ({
+					append: new Tag({
+						tag: 'a',
+						readOnly: true,
+						href: tagHref(tag),
+						textContent: tag,
+						title: `Search for ${tag}`,
+						onPointerPress: event => {
+							if (!plainPress(event) || !this.options.onTagPress) return;
+
+							event.preventDefault();
+							this.options.onTagPress(tag);
+						},
+					}),
+				})),
 			});
 		}
 	}

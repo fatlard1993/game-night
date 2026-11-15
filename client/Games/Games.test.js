@@ -68,8 +68,69 @@ describe('Games', () => {
 		await settled();
 
 		const card = view.content.elem.querySelector('[data-game-id="g 1"]');
+		const link = card.querySelector('a.name');
 
-		expect(card.tagName).toBe('A');
-		expect(card.getAttribute('href')).toBe('/games/g%201');
+		expect(link.textContent).toBe('Chess');
+		expect(link.getAttribute('href')).toBe('/games/g%201');
+	});
+
+	test("a card's tags are links to the library searched for them, beside the game's link and not inside it", async () => {
+		window.happyDOM.setURL('http://localhost/games?players=4&tag=co-op');
+		getGames.mockResolvedValue({
+			status: 'success',
+			response: { ok: true, status: 200 },
+			body: { g1: { id: 'g1', name: 'Pandemic', playersMin: 2, playersMax: 4, tags: ['co-op', 'deck building'] } },
+		});
+
+		view = new Games({ appendTo: document.body });
+
+		await settled();
+
+		const card = view.content.elem.querySelector('[data-game-id="g1"]');
+		const tags = [...card.querySelectorAll('ul.tags a[href]')];
+
+		// No link holds another
+		expect(card.querySelectorAll('a a')).toHaveLength(0);
+		expect(card.closest('a')).toBeNull();
+		expect(tags.map(tag => tag.textContent)).toEqual(['co-op', 'deck building']);
+		// Each is the library as it's filtered now, with its tag added
+		expect(tags.map(tag => tag.getAttribute('href'))).toEqual([
+			'/games?players=4&tag=co-op',
+			'/games?players=4&tag=co-op&tag=deck+building',
+		]);
+	});
+
+	test('a plain press on a tag searches for it in place; one for a new tab is left to the browser', async () => {
+		window.happyDOM.setURL('http://localhost/games');
+		getGames.mockResolvedValue({
+			status: 'success',
+			response: { ok: true, status: 200 },
+			body: {
+				g1: { id: 'g1', name: 'Pandemic', tags: ['co-op'] },
+				g2: { id: 'g2', name: 'Chess', tags: ['abstract'] },
+			},
+		});
+
+		view = new Games({ appendTo: document.body });
+
+		await settled();
+
+		const tagLink = () => view.content.elem.querySelector('[data-game-id="g1"] ul.tags a');
+		const newTab = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
+
+		tagLink().dispatchEvent(newTab);
+
+		expect(newTab.defaultPrevented).toBe(false);
+		expect(view.filters.tags).toEqual([]);
+
+		const plain = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+		tagLink().dispatchEvent(plain);
+		await settled();
+
+		expect(plain.defaultPrevented).toBe(true);
+		expect(view.filters.tags).toEqual(['co-op']);
+		expect(window.location.search).toBe('?tag=co-op');
+		expect([...view.content.elem.querySelectorAll('[data-game-id]')].map(card => card.dataset.gameId)).toEqual(['g1']);
 	});
 });

@@ -151,9 +151,18 @@ export default class Games extends View {
 						game,
 						attributes: { 'data-game-id': game.id },
 						onTagPress: tag => this.toolbar.addTagFilter(tag),
+						// Where a press takes the library, so the link opened in a new tab lands on the same search
+						tagHref: tag => this.tagSearchHref(tag),
 					}),
 			),
 		});
+	}
+
+	// The library as it's filtered now, with the tag added to the tag filter: what pressing the tag does in place
+	tagSearchHref(tag) {
+		const tags = this.filters.tags?.includes(tag) ? this.filters.tags : [...(this.filters.tags || []), tag];
+
+		return `${paths.library}${filtersToQuery({ ...this.filters, tags })}`;
 	}
 
 	// Distinct from the empty-library message on purpose: "no games yet" and "the library did not

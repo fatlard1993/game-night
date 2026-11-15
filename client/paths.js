@@ -10,3 +10,10 @@ export const paths = Object.freeze({
  * @returns {string} the path to the game's page
  */
 export const gamePath = id => paths.game.replace(':id', encodeURIComponent(id));
+
+/**
+ * The library searched for one tag, an address the library reads its filters from
+ * @param tag the tag
+ * @returns {string} the library's path with the tag as its filter
+ */
+export const tagSearchPath = tag => `${paths.library}?${new URLSearchParams({ tag })}`;
