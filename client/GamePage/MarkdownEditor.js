@@ -26,7 +26,6 @@ const Editor = styled(
 		width: 100%;
 		min-height: 240px;
 		resize: vertical;
-		font-family: monospace;
 		font-size: ${fontSize.sm};
 	`,
 );
@@ -75,7 +74,6 @@ export default class MarkdownEditor extends Container {
 				this.preview.options.md = value;
 			}, 300),
 		});
-
 
 		this.append(
 			new Pane({ append: [heading, this.editor] }),
