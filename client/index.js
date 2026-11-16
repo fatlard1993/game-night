@@ -8,7 +8,7 @@ import '@vanilla-bean/components/app/reloadOnBuild';
 
 // Views read context.admin to decide whether to offer editing at all; seed it before first
 // paint so the buttons don't flash in and out. A failed check simply leaves it false.
-getSession({ onSuccess: ({ body }) => (context.admin = !!body?.admin) }).catch(() => {});
+getSession({ onSuccess: ({ body }) => (context.admin = !!body?.admin) });
 
 // Typing in a field is never a search shortcut: a slash in a dialog's links field stays there
 const EDITABLE = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
