@@ -6,6 +6,7 @@ import {
 	Content,
 	Dialog,
 	EmptyState,
+	Form,
 	Icon,
 	Link,
 	SectionLabel,
@@ -418,31 +419,37 @@ export default class GamePage extends View {
 		});
 	}
 
-	// True when the editors hold something the server doesn't have yet
+	// True when the form holds something the server doesn't have yet
 	_editsPending() {
-		if (!this.editing || !this.descriptionEditor) return false;
+		if (!this.editing || !this.editForm) return false;
 
 		const { description = '', rules = '' } = this._editorBaseline || {};
+		const { data } = this.editForm.options;
 
-		return this.descriptionEditor.value !== description || this.rulesEditor.value !== rules;
+		return (data.description ?? '') !== description || (data.rules ?? '') !== rules;
 	}
 
 	_renderEditor(game) {
 		this._editorBaseline = { description: game.description || '', rules: game.rules || '' };
 
-		this.descriptionEditor = new MarkdownEditor({
-			appendTo: this.body,
-			label: 'Description',
-			value: game.description,
-			placeholder: 'What is this game? Markdown supported...',
+		// Built first, so the failure line and the buttons below can go in as the form's own children
+		const editForm = new Form({
+			data: { ...this._editorBaseline },
+			inputs: [
+				{
+					key: 'description',
+					InputComponent: MarkdownEditor,
+					placeholder: 'What is this game? Markdown supported...',
+				},
+				{
+					key: 'rules',
+					InputComponent: MarkdownEditor,
+					placeholder: 'How to play: setup, turns, scoring, winning. Markdown supported...',
+				},
+			],
 		});
 
-		this.rulesEditor = new MarkdownEditor({
-			appendTo: this.body,
-			label: 'Rules',
-			value: game.rules,
-			placeholder: 'How to play: setup, turns, scoring, winning. Markdown supported...',
-		});
+		this.editForm = editForm;
 
 		// Covers the tab close, the back button, and the dev hot-reload, none of which route
 		// through Cancel
@@ -458,11 +465,11 @@ export default class GamePage extends View {
 		this.replaceCleanup('unsavedGuard', () => window.removeEventListener('beforeunload', warn));
 
 		// Just above the buttons it answers, as a dialog's failed save sits
-		this.saveError = new ErrorNote({ appendTo: this.body, attributes: { role: 'alert' } });
+		this.saveError = new ErrorNote({ appendTo: editForm, attributes: { role: 'alert' } });
 
 		// Cancel first and quiet, Save last and filled, as in a dialog's footer
 		new EditBar({
-			appendTo: this.body,
+			appendTo: editForm,
 			append: [
 				new Button({
 					textContent: 'Cancel',
@@ -492,9 +499,8 @@ export default class GamePage extends View {
 					onPointerPress: async () => {
 						this.saveError.options.textContent = '';
 
-						const result = await updateGame(game.id, {
-							body: { description: this.descriptionEditor.value, rules: this.rulesEditor.value },
-						});
+						const { description, rules } = editForm.options.data;
+						const result = await updateGame(game.id, { body: { description, rules } });
 
 						// A failed save keeps the editors (and their text) up instead of
 						// silently discarding the edit
@@ -515,5 +521,7 @@ export default class GamePage extends View {
 				}),
 			],
 		});
+
+		this.body.append(editForm);
 	}
 }

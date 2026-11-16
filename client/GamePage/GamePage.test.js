@@ -149,7 +149,10 @@ describe('GamePage', () => {
 	test('discarding unsaved edits asks in a danger confirm', async () => {
 		await startEditing();
 
-		page.descriptionEditor.editor.options.value = 'Changed';
+		const textarea = page.body.elem.querySelector('textarea');
+
+		textarea.value = 'Changed';
+		textarea.dispatchEvent(new Event('input', { bubbles: true }));
 		button(page.body.elem, 'Cancel').click();
 
 		await settled();
@@ -160,5 +163,54 @@ describe('GamePage', () => {
 		expect(confirm.className).toContain('danger');
 
 		button(confirm, 'Keep editing').click();
+	});
+
+	test("the description and rules are the form's fields, and Save sends what's typed in them", async () => {
+		updateGame.mockImplementationOnce(async (id, { body }) => ({
+			status: 'success',
+			response: { ok: true, status: 200 },
+			body: { ...game, ...body },
+		}));
+
+		await startEditing();
+
+		const [description, rules] = page.body.elem.querySelectorAll('textarea');
+		const label = textarea => document.querySelector(`label[for="${textarea.id}"]`).textContent;
+
+		expect([label(description), label(rules)]).toEqual(['Description', 'Rules']);
+
+		rules.value = 'Stalemate draws';
+		rules.dispatchEvent(new Event('input', { bubbles: true }));
+		button(page.body.elem, 'Save').click();
+
+		await settled();
+
+		expect(updateGame).toHaveBeenLastCalledWith('g1', {
+			body: { description: 'Two players', rules: 'Stalemate draws' },
+		});
+		expect(page.body.elem.querySelector('textarea')).toBeNull();
+	});
+
+	test('a failed save says why inside the form and keeps what was typed', async () => {
+		updateGame.mockImplementationOnce(async () => ({
+			status: 'error',
+			response: { ok: false, status: 500 },
+			body: { error: 'store locked' },
+		}));
+
+		await startEditing();
+
+		const rules = page.body.elem.querySelectorAll('textarea')[1];
+
+		rules.value = 'Kept';
+		rules.dispatchEvent(new Event('input', { bubbles: true }));
+		button(page.body.elem, 'Save').click();
+
+		await settled();
+
+		const alert = page.editForm.elem.querySelector('[role="alert"]');
+
+		expect(alert.textContent).toBe('Save failed: store locked');
+		expect(page.body.elem.querySelectorAll('textarea')[1].value).toBe('Kept');
 	});
 });

@@ -44,13 +44,20 @@ const Preview = styled(
 );
 
 /**
- * Side-by-side markdown editor: a textarea and a live-rendered preview.
- * Read the current text back through `.value`.
+ * Side-by-side markdown editor: a textarea and a live-rendered preview. A Form field: it takes `value`, announces
+ * `change` with `event.value` as it's typed, and a Label names the textarea through `labelTarget`.
  */
 export default class MarkdownEditor extends Container {
 	static schema = {
-		label: {},
-		value: {},
+		value: {
+			// A value set from outside reaches the textarea; the one just typed is already there
+			set(value) {
+				if (!this.editor || this.editor.options.value === (value ?? '')) return;
+
+				this.editor.options.value = value ?? '';
+				this.preview.options.md = value ?? '';
+			},
+		},
 		placeholder: {},
 	};
 
@@ -58,26 +65,33 @@ export default class MarkdownEditor extends Container {
 		return this.editor.options.value;
 	}
 
+	get labelTarget() {
+		return this.editor;
+	}
+
 	build() {
 		this.preview = new Preview({ md: this.options.value || '' });
 
-		// Both panes are headed alike; the textarea takes its name from its pane's heading
-		const heading = new SectionLabel({ textContent: this.options.label });
-
-		heading.elem.id = `${heading.uniqueId}-heading`;
+		const showPreview = debounce(value => {
+			this.preview.options.md = value;
+		}, 300);
 
 		this.editor = new Editor({
 			tag: 'textarea',
 			value: this.options.value || '',
+			// Named by the Label its Form wraps it in, which finds it through labelTarget
+			// eslint-disable-next-line vbc/form.placeholder-not-label
 			placeholder: this.options.placeholder || 'Markdown supported...',
-			attributes: { 'aria-labelledby': heading.elem.id },
-			onInput: debounce(({ value }) => {
-				this.preview.options.md = value;
-			}, 300),
+			// Announced as typed, not on leaving the textarea: a Save pressed where buttons take no focus reads it current
+			onInput: ({ value }) => {
+				this.emit('change', { value });
+				showPreview(value);
+			},
 		});
 
+		// The field's name is its Label's; the panes say which is the text and which is how it reads
 		this.append(
-			new Pane({ append: [heading, this.editor] }),
+			new Pane({ append: [new SectionLabel({ textContent: 'Markdown' }), this.editor] }),
 			new Pane({ append: [new SectionLabel({ textContent: 'Preview' }), this.preview] }),
 		);
 	}
