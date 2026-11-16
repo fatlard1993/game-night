@@ -212,5 +212,10 @@ describe('GamePage', () => {
 
 		expect(alert.textContent).toBe('Save failed: store locked');
 		expect(page.body.elem.querySelectorAll('textarea')[1].value).toBe('Kept');
+		// Between the editors and the buttons it answers
+		expect(
+			alert.compareDocumentPosition(button(page.body.elem, 'Save')) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+		expect(alert.compareDocumentPosition(rules) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
 	});
 });

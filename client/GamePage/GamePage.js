@@ -84,16 +84,6 @@ const EditBar = styled(
 	`,
 );
 
-const ErrorNote = styled(
-	Component,
-	({ colors, space }) => `
-		color: ${colors.light(colors.danger)};
-		margin: 0 0 ${space.sm};
-
-		&:empty { display: none; }
-	`,
-);
-
 const RelatedRow = styled(
 	Component,
 	({ space }) => `
@@ -432,8 +422,63 @@ export default class GamePage extends View {
 	_renderEditor(game) {
 		this._editorBaseline = { description: game.description || '', rules: game.rules || '' };
 
-		// Built first, so the failure line and the buttons below can go in as the form's own children
+		// Cancel first and quiet, Save last and filled, as in a dialog's footer
+		const editBar = new EditBar({
+			append: [
+				new Button({
+					textContent: 'Cancel',
+					variant: 'flat',
+					onPointerPress: async () => {
+						// Rules get written here in long sittings; discarding them on a single stray tap,
+						// with no undo and no draft anywhere, is the most expensive slip on the page
+						if (
+							this._editsPending() &&
+							!(await Dialog.confirm({
+								intent: 'danger',
+								header: 'Discard changes?',
+								body: 'Your unsaved edits to the description and rules will be lost.',
+								confirmLabel: 'Discard',
+								cancelLabel: 'Keep editing',
+							}))
+						) {
+							return;
+						}
+
+						this.editing = false;
+						this.renderContent();
+					},
+				}),
+				new Button({
+					textContent: 'Save',
+					onPointerPress: async () => {
+						editForm.showFailure();
+
+						const { description, rules } = editForm.options.data;
+						const result = await updateGame(game.id, { body: { description, rules } });
+
+						// A failed save keeps the editors (and their text) up instead of
+						// silently discarding the edit
+						if (!result.response?.ok) {
+							editForm.showFailure(`Save failed: ${failureReason(result)}`);
+
+							return;
+						}
+
+						this.editing = false;
+
+						// The invalidation-triggered refetch also lands here shortly; render the
+						// PATCH response now so leaving edit mode isn't a frame behind
+						if (result.body?.id) this.game.body = result.body;
+
+						this.renderContent();
+					},
+				}),
+			],
+		});
+
+		// The buttons are the form's own children, so a failed save's line (showFailure) sits between the fields and them
 		const editForm = new Form({
+			append: editBar,
 			data: { ...this._editorBaseline },
 			inputs: [
 				{
@@ -463,64 +508,6 @@ export default class GamePage extends View {
 		window.addEventListener('beforeunload', warn);
 		// replaceCleanup: renderContent runs again on every background refetch while editing
 		this.replaceCleanup('unsavedGuard', () => window.removeEventListener('beforeunload', warn));
-
-		// Just above the buttons it answers, as a dialog's failed save sits
-		this.saveError = new ErrorNote({ appendTo: editForm, attributes: { role: 'alert' } });
-
-		// Cancel first and quiet, Save last and filled, as in a dialog's footer
-		new EditBar({
-			appendTo: editForm,
-			append: [
-				new Button({
-					textContent: 'Cancel',
-					variant: 'flat',
-					onPointerPress: async () => {
-						// Rules get written here in long sittings; discarding them on a single stray tap,
-						// with no undo and no draft anywhere, is the most expensive slip on the page
-						if (
-							this._editsPending() &&
-							!(await Dialog.confirm({
-								intent: 'danger',
-								header: 'Discard changes?',
-								body: 'Your unsaved edits to the description and rules will be lost.',
-								confirmLabel: 'Discard',
-								cancelLabel: 'Keep editing',
-							}))
-						) {
-							return;
-						}
-
-						this.editing = false;
-						this.renderContent();
-					},
-				}),
-				new Button({
-					textContent: 'Save',
-					onPointerPress: async () => {
-						this.saveError.options.textContent = '';
-
-						const { description, rules } = editForm.options.data;
-						const result = await updateGame(game.id, { body: { description, rules } });
-
-						// A failed save keeps the editors (and their text) up instead of
-						// silently discarding the edit
-						if (!result.response?.ok) {
-							this.saveError.options.textContent = `Save failed: ${failureReason(result)}`;
-
-							return;
-						}
-
-						this.editing = false;
-
-						// The invalidation-triggered refetch also lands here shortly; render the
-						// PATCH response now so leaving edit mode isn't a frame behind
-						if (result.body?.id) this.game.body = result.body;
-
-						this.renderContent();
-					},
-				}),
-			],
-		});
 
 		this.body.append(editForm);
 	}
