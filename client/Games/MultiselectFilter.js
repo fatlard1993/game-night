@@ -81,7 +81,7 @@ export default class MultiselectFilter extends styled.Popover(
 			flex-shrink: 0;
 		}
 	`,
-	{ autoOpen: false, maxWidth: 260 },
+	{ autoOpen: false, maxWidth: 260, maxHeight: 360 },
 ) {
 	static schema = {
 		// data: the emit option collides with Component's emit() method
