@@ -46,17 +46,17 @@ export default class MultiselectFilter extends styled.Popover(
 			flex: 1;
 		}
 
+		/* Each row is a toggle Button, on drawn by its pressed state; laid out as a list's row */
 		& .filterRow {
 			display: flex;
 			align-items: center;
+			justify-content: flex-start;
 			gap: ${space.sm};
+			width: 100%;
+			margin: 0;
 			padding: ${space.sm} ${space.md};
-			cursor: pointer;
+			border-radius: 0;
 			white-space: nowrap;
-
-			&:hover { background-color: ${colors.alpha(colors.white, 0.08)}; }
-
-			&.selected { background-color: ${colors.alpha(colors.selected, 0.25)}; }
 
 			& .check {
 				width: 14px;
@@ -134,16 +134,7 @@ export default class MultiselectFilter extends styled.Popover(
 			});
 		}
 
-		// Rows are plain Elems; the list delegates their presses
-		this.list = new Component({
-			appendTo: this,
-			addClass: 'filterList',
-			onPointerPress: event => {
-				const value = event.target.closest('.filterRow')?.dataset.value;
-
-				if (value) this.toggle(value);
-			},
-		});
+		this.list = new Component({ appendTo: this, addClass: 'filterList' });
 
 		this.footer = new Elem(
 			{ appendTo: this, addClass: 'filterFooter' },
@@ -189,6 +180,7 @@ export default class MultiselectFilter extends styled.Popover(
 
 	_renderList() {
 		this.list.empty();
+		this._rows = new Map();
 
 		const minCount = this.options.minCount || 1;
 
@@ -210,18 +202,27 @@ export default class MultiselectFilter extends styled.Popover(
 		for (const [value, count] of entries) {
 			const selected = this.selected.has(value);
 
-			new Elem({
+			const check = new Icon({ addClass: 'check', icon: selected ? 'check' : undefined });
+
+			// A toggle, reached by Tab and pressed by Enter or Space; named by its value, the count beside it is a figure
+			const row = new Button({
 				appendTo: this.list,
-				addClass: selected ? ['filterRow', 'selected'] : ['filterRow'],
-				attributes: { 'data-value': value },
+				variant: 'flat',
+				addClass: 'filterRow',
+				pressed: selected,
+				'aria-label': value,
+				'data-value': value,
 				append: [
-					new Icon({ addClass: 'check', icon: selected ? 'check' : undefined }),
+					check,
 					new Elem({ tag: 'span', textContent: value }),
 					...(this.options.showCounts && count != null
 						? [new Elem({ tag: 'span', addClass: 'count', textContent: String(count) })]
 						: []),
 				],
+				onPointerPress: () => this.toggle(value),
 			});
+
+			this._rows.set(value, { row, check });
 		}
 	}
 
@@ -236,7 +237,17 @@ export default class MultiselectFilter extends styled.Popover(
 		if (this.selected.has(value)) this.selected.delete(value);
 		else this.selected.add(value);
 
-		this._renderList();
+		// Shown in place, not re-sorted: the row stays under the pointer and keeps the keyboard's focus. The next
+		// listing puts the selected first
+		const shown = this._rows?.get(value);
+
+		if (shown) {
+			const selected = this.selected.has(value);
+
+			shown.row.options.pressed = selected;
+			shown.check.options.icon = selected ? 'check' : undefined;
+		}
+
 		this._emit();
 	}
 

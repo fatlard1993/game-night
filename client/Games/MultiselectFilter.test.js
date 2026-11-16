@@ -49,4 +49,45 @@ describe('MultiselectFilter', () => {
 		expect(filter.isOpen).toBe(false);
 		expect(document.activeElement).toBe(filter.button.elem);
 	});
+
+	describe('its rows', () => {
+		let emitted;
+
+		const open = () => {
+			emitted = [];
+			filter = new MultiselectFilter({
+				appendTo: document.body,
+				buttonParent: document.body,
+				label: 'tags',
+				showCounts: true,
+				initialSelected: ['party'],
+				emit: values => emitted.push(values),
+			});
+			filter.setVocabulary({ 'co-op': 5, party: 3 });
+			filter.button.elem.click();
+		};
+
+		const row = name => filter.list.elem.querySelector(`button[aria-label="${name}"]`);
+
+		test('are toggle buttons named by their value, which say whether they are on', () => {
+			open();
+
+			expect(row('party').getAttribute('aria-pressed')).toBe('true');
+			expect(row('co-op').getAttribute('aria-pressed')).toBe('false');
+		});
+
+		test('pressing one turns it on in place, keeping the keyboard on it', () => {
+			open();
+
+			const coop = row('co-op');
+
+			coop.focus();
+			coop.click();
+
+			expect(emitted.at(-1)).toEqual(['party', 'co-op']);
+			expect(row('co-op')).toBe(coop);
+			expect(coop.getAttribute('aria-pressed')).toBe('true');
+			expect(document.activeElement).toBe(coop);
+		});
+	});
 });
